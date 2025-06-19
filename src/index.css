@@ -1,0 +1,522 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* FlexiBug Design System - Beauty Industry Focused */
+
+@layer base {
+  :root {
+    /* FlexiBug Color Scheme - Light Mode */
+    --background: 0 0% 98%; /* Warm white background */
+    --foreground: 25 15% 34%; /* Warm charcoal for text (#57534e) */
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 15% 34%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 15% 34%;
+
+    /* Rose Gold as primary - elegant and luxurious */
+    --primary: 330 81% 60%; /* Rose Gold (#ec4899) */
+    --primary-foreground: 0 0% 98%;
+
+    /* Deep Plum as secondary - sophisticated and creative */
+    --secondary: 270 64% 59%; /* Deep Plum (#9333ea) */
+    --secondary-foreground: 0 0% 98%;
+
+    /* Warm Gray for muted elements */
+    --muted: 0 0% 96%; /* Warm light gray (#f5f5f4) */
+    --muted-foreground: 25 9% 45%;
+
+    /* Soft Rose for accents */
+    --accent: 327 73% 97%; /* Light Rose (#fce7f3) */
+    --accent-foreground: 330 81% 60%;
+
+    /* Success, Warning, Error using new palette */
+    --destructive: 0 84% 60%; /* Soft red for errors */
+    --destructive-foreground: 0 0% 98%;
+
+    /* Warm borders and inputs */
+    --border: 24 6% 83%; /* Warm light gray border */
+    --input: 24 6% 83%;
+    --ring: 330 81% 60%; /* Rose gold focus ring */
+
+    --radius: 0.75rem; /* Increased for more elegant feel */
+
+    /* Sidebar using warm tones */
+    --sidebar-background: 327 73% 97%; /* Light rose background */
+    --sidebar-foreground: 25 15% 34%;
+    --sidebar-primary: 330 81% 60%; /* Rose Gold */
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 270 100% 98%; /* Light plum */
+    --sidebar-accent-foreground: 270 64% 59%;
+    --sidebar-border: 24 6% 90%;
+    --sidebar-ring: 330 81% 60%;
+  }
+
+  .dark {
+    /* FlexiBug Color Scheme - Dark Mode */
+    --background: 25 15% 8%; /* Very dark warm background */
+    --foreground: 327 73% 95%; /* Light rose for text */
+
+    --card: 25 15% 10%;
+    --card-foreground: 327 73% 95%;
+
+    --popover: 25 15% 10%;
+    --popover-foreground: 327 73% 95%;
+
+    /* Lighter rose for dark mode primary */
+    --primary: 330 81% 70%; /* Lighter rose gold for visibility */
+    --primary-foreground: 25 15% 8%;
+
+    /* Lighter plum for dark mode secondary */
+    --secondary: 270 64% 70%; /* Lighter plum */
+    --secondary-foreground: 25 15% 8%;
+
+    /* Dark muted colors */
+    --muted: 25 15% 15%;
+    --muted-foreground: 327 50% 70%;
+
+    /* Dark mode accent */
+    --accent: 25 15% 20%;
+    --accent-foreground: 327 73% 95%;
+
+    /* Error color for dark mode */
+    --destructive: 0 84% 70%; /* Brighter red for dark mode */
+    --destructive-foreground: 25 15% 8%;
+
+    /* Dark borders */
+    --border: 25 15% 20%;
+    --input: 25 15% 20%;
+    --ring: 330 81% 70%;
+
+    /* Dark sidebar with warm accents */
+    --sidebar-background: 25 15% 12%;
+    --sidebar-foreground: 327 73% 90%;
+    --sidebar-primary: 330 81% 70%; /* Rose gold for dark mode */
+    --sidebar-primary-foreground: 25 15% 8%;
+    --sidebar-accent: 25 15% 18%;
+    --sidebar-accent-foreground: 327 73% 90%;
+    --sidebar-border: 25 15% 20%;
+    --sidebar-ring: 330 81% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-primary;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Global Scrollbar Styling - Ultra Thin */
+@layer base {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(236, 72, 153, 0.3) transparent;
+  }
+
+  /* Webkit browsers */
+  *::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(236, 72, 153, 0.3);
+    border-radius: 1px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 72, 153, 0.5);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* Custom Scrollbar Styling */
+@layer utilities {
+  /* Regular scrollbar for main content */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(236, 72, 153, 0.4) rgba(252, 231, 243, 0.3);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(252, 231, 243, 0.3);
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.4), rgba(219, 39, 119, 0.4));
+    border-radius: 2px;
+    border: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(219, 39, 119, 0.6), rgba(190, 24, 93, 0.6));
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Nearly invisible scrollbar for sidebar */
+  .sidebar-scrollbar {
+    scrollbar-width: none; /* Firefox - completely hide */
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 1px;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(236, 72, 153, 0.1);
+    border-radius: 1px;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 72, 153, 0.2);
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* FlexiBug Custom Component Styles - Mobile First */
+@layer components {
+  /* Primary Button - Mobile First */
+  .btn-primary {
+    @apply bg-gradient-to-br from-primary-500 to-primary-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm border-none shadow-sm transition-all duration-200 ease-in-out w-full;
+  }
+  
+  .btn-primary:hover {
+    @apply bg-gradient-to-br from-primary-600 to-primary-700 shadow-md;
+  }
+  
+  .btn-primary:active {
+    @apply shadow-sm;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .btn-primary {
+      @apply px-6 py-3 text-base w-auto;
+    }
+    
+    .btn-primary:hover {
+      @apply -translate-y-0.5;
+    }
+  }
+
+  /* Secondary Button - Mobile First */
+  .btn-secondary {
+    @apply bg-neutral-50 text-neutral-700 border border-neutral-200 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ease-in-out w-full;
+  }
+  
+  .btn-secondary:hover {
+    @apply bg-neutral-100 border-neutral-300;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .btn-secondary {
+      @apply px-6 py-3 text-base w-auto;
+    }
+  }
+
+  /* Input Fields - Mobile First */
+  .input-field {
+    @apply w-full px-3 py-3 border border-neutral-300 rounded-lg text-base bg-neutral-50 transition-all duration-200 ease-in-out;
+  }
+  
+  .input-field:focus {
+    @apply outline-none border-primary-500 bg-white;
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+  }
+  
+  .input-field::placeholder {
+    @apply text-neutral-400;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .input-field {
+      @apply px-4;
+    }
+  }
+
+  /* Cards - Mobile First */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden transition-all duration-200 ease-in-out;
+  }
+  
+  .card:hover {
+    @apply shadow-beauty;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .card {
+      @apply rounded-xl;
+    }
+    
+    .card:hover {
+      @apply -translate-y-0.5;
+    }
+  }
+
+  /* Portfolio Grid - Mobile First */
+  .portfolio-grid {
+    @apply grid grid-cols-1 gap-4;
+  }
+  
+  .portfolio-item {
+    @apply relative rounded-lg overflow-hidden shadow-beauty transition-all duration-300 ease-in-out;
+  }
+  
+  .portfolio-item:active {
+    @apply scale-95;
+  }
+
+  /* Tablet */
+  @media (min-width: 768px) {
+    .portfolio-grid {
+      @apply grid-cols-2 gap-6;
+    }
+    
+    .portfolio-item {
+      @apply rounded-xl;
+    }
+    
+    .portfolio-item:hover {
+      @apply scale-105 shadow-beauty-lg;
+    }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .portfolio-grid {
+      @apply grid-cols-3;
+    }
+  }
+
+  /* Service Cards - Mobile First */
+  .service-card {
+    @apply bg-white rounded-lg p-4 shadow-sm border border-neutral-200 relative overflow-hidden;
+  }
+  
+  .service-card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 to-secondary-500;
+  }
+  
+  .service-price {
+    @apply text-xl font-bold text-primary-600 font-secondary;
+  }
+  
+  .service-duration {
+    @apply text-neutral-500 text-sm font-medium;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .service-card {
+      @apply rounded-xl p-6;
+    }
+    
+    .service-price {
+      @apply text-2xl;
+    }
+  }
+
+  /* Calendar - Mobile First */
+  .calendar {
+    @apply bg-white rounded-lg shadow-beauty overflow-hidden;
+  }
+  
+  .calendar-header {
+    @apply bg-gradient-to-br from-primary-500 to-secondary-500 text-white p-4 text-center;
+  }
+  
+  .calendar-day {
+    @apply p-2 border border-neutral-100 min-h-16 relative text-xs;
+  }
+  
+  .calendar-day.today {
+    @apply bg-primary-50 border-primary-200;
+  }
+  
+  .calendar-appointment {
+    @apply bg-primary-100 text-primary-700 px-1 py-0.5 rounded-sm text-xs my-0.5 block truncate;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .calendar {
+      @apply rounded-xl;
+    }
+    
+    .calendar-header {
+      @apply p-6;
+    }
+    
+    .calendar-day {
+      @apply p-3 min-h-20 text-sm;
+    }
+    
+    .calendar-appointment {
+      @apply px-2 py-1 my-1;
+    }
+  }
+
+  /* Navigation - Mobile First */
+  .nav-item {
+    @apply px-3 py-2 rounded-md text-neutral-600 no-underline font-medium transition-all duration-200 ease-in-out text-sm;
+  }
+  
+  .nav-item:hover {
+    @apply bg-primary-50 text-primary-600;
+  }
+  
+  .nav-item.active {
+    @apply bg-primary-100 text-primary-700;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .nav-item {
+      @apply px-4 py-3 text-base;
+    }
+  }
+}
+
+/* FlexiBug Utility Classes */
+@layer utilities {
+  /* Gradient Backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, theme('colors.primary.500'), theme('colors.primary.600'));
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, theme('colors.secondary.500'), theme('colors.secondary.600'));
+  }
+  
+  .gradient-beauty {
+    background: linear-gradient(135deg, theme('colors.primary.500'), theme('colors.secondary.500'));
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, theme('colors.primary.500'), theme('colors.secondary.500'));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Typography - Mobile First */
+  .text-display {
+    @apply font-secondary text-2xl font-bold leading-tight text-neutral-800;
+  }
+  
+  .text-heading {
+    @apply font-secondary text-xl font-semibold leading-tight text-neutral-700;
+  }
+  
+  .text-subheading {
+    @apply font-primary text-lg font-semibold leading-normal text-neutral-700;
+  }
+  
+  .text-body-large {
+    @apply font-primary text-base font-normal leading-relaxed text-neutral-600;
+  }
+  
+  .text-body {
+    @apply font-primary text-sm font-normal leading-normal text-neutral-600;
+  }
+  
+  .text-body-small {
+    @apply font-primary text-xs font-normal leading-normal text-neutral-500;
+  }
+
+  /* Tablet and larger */
+  @media (min-width: 768px) {
+    .text-display {
+      @apply text-4xl;
+    }
+    
+    .text-heading {
+      @apply text-3xl;
+    }
+    
+    .text-subheading {
+      @apply text-2xl;
+    }
+    
+    .text-body-large {
+      @apply text-lg;
+    }
+    
+    .text-body {
+      @apply text-base;
+    }
+    
+    .text-body-small {
+      @apply text-sm;
+    }
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* Custom Shadows */
+  .shadow-beauty-soft {
+    box-shadow: 0 2px 4px -1px rgba(236, 72, 153, 0.1), 0 1px 2px -1px rgba(236, 72, 153, 0.06);
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}

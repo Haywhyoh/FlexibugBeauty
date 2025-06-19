@@ -1,0 +1,86 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+  #root {
+    padding: 2rem;
+  }
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em theme('colors.primary.500'));
+}
+
+.logo.flexibug:hover {
+  filter: drop-shadow(0 0 2em theme('colors.secondary.500'));
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes logo-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .logo {
+    animation: logo-float 3s ease-in-out infinite;
+  }
+}
+
+.main-card {
+  padding: 1rem;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.1), 0 2px 4px -1px rgba(236, 72, 153, 0.06);
+  border: 1px solid theme('colors.neutral.200');
+}
+
+/* Tablet and larger */
+@media (min-width: 768px) {
+  .main-card {
+    padding: 2rem;
+    border-radius: 1rem;
+  }
+}
+
+.hero-text {
+  background: linear-gradient(135deg, theme('colors.primary.500'), theme('colors.secondary.500'));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.read-the-docs {
+  color: theme('colors.neutral.500');
+  transition: color 0.2s ease;
+}
+
+.read-the-docs:hover {
+  color: theme('colors.primary.600');
+}
+
