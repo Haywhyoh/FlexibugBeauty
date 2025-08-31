@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Clock, User, Phone, Edit, CheckCircle, AlertTriangle } from "lucide-react";
+import { CalendarDays, Clock, User, Phone, Edit, CheckCircle, AlertTriangle, X, Star, Check } from "lucide-react";
 import { format, addMinutes, isSameDay } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,28 +286,95 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
   };
 
   const renderServiceSelection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {services.map(service => (
-        <Card
-          key={service.id}
-          className={`cursor-pointer hover:shadow-md transition-shadow duration-200 ${selectedService?.id === service.id ? 'border-2 border-primary' : ''}`}
-          onClick={() => setSelectedService(service)}
-        >
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">{service.description}</p>
-            <div className="mt-3 flex justify-between items-center">
-              <span className="text-primary font-medium">${service.price}</span>
-              <span className="text-gray-600 text-sm">
-                <Clock className="inline-block w-4 h-4 mr-1" />
-                {service.duration_minutes} min
-              </span>
+    <div className="space-y-3 max-h-96 overflow-y-auto">
+      {services.map((service, index) => {
+        const isSelected = selectedService?.id === service.id;
+        const isPopular = index === 0; // First service is marked as popular for demo
+        
+        return (
+          <div
+            key={service.id}
+            className={`relative group cursor-pointer rounded-xl border-2 transition-all duration-300 p-4 hover:shadow-lg ${
+              isSelected 
+                ? 'border-purple-600 bg-purple-50 shadow-md' 
+                : 'border-gray-200 hover:border-purple-300 bg-white'
+            }`}
+            onClick={() => setSelectedService(service)}
+          >
+            {/* Popular Badge */}
+            {isPopular && (
+              <div className="absolute -top-2 -right-2 z-10">
+                <div className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <Star className="w-3 h-3 fill-current" />
+                  Popular
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-4">
+              {/* Service Icon/Avatar */}
+              <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl transition-colors ${
+                isSelected ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {service.name.charAt(0)}
+              </div>
+
+              {/* Service Details */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className={`text-lg font-semibold transition-colors ${
+                      isSelected ? 'text-purple-800' : 'text-gray-900'
+                    }`}>
+                      {service.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {service.description || "Professional beauty service"}
+                    </p>
+                  </div>
+                  
+                  {/* Selection Indicator */}
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    isSelected 
+                      ? 'bg-purple-600 border-purple-600 text-white' 
+                      : 'border-gray-300 group-hover:border-purple-400'
+                  }`}>
+                    {isSelected && <Check className="w-4 h-4" />}
+                  </div>
+                </div>
+
+                {/* Price and Duration */}
+                <div className="flex items-center gap-4 mt-3">
+                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                    isSelected ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    <span className="text-lg font-bold">${service.price}</span>
+                  </div>
+                  
+                  <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
+                    isSelected ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    <Clock className="w-4 h-4" />
+                    <span>{service.duration_minutes} min</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+
+            {/* Selected Service Highlight */}
+            {isSelected && (
+              <div className="absolute inset-0 rounded-xl bg-purple-600/5 pointer-events-none"></div>
+            )}
+          </div>
+        );
+      })}
+      
+      {services.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          <User className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No services available at the moment.</p>
+        </div>
+      )}
     </div>
   );
 
@@ -456,8 +523,16 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">Book Appointment</h2>
+        <div className="p-6 border-b relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 p-2 h-8 w-8 rounded-full hover:bg-gray-100"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <h2 className="text-2xl font-bold text-gray-900 pr-12">Book Appointment</h2>
           <p className="text-gray-500 mt-1">
             {currentStep === 1 && "Choose a service to book."}
             {currentStep === 2 && "Select date and time for your appointment."}
@@ -506,9 +581,12 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
         </div>
 
         <div className="flex justify-between p-6 border-t">
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
+          {currentStep > 1 && (
+            <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
+              Back
+            </Button>
+          )}
+          <div className="flex-1"></div>
           {currentStep < 4 ? (
             <Button onClick={() => setCurrentStep(currentStep + 1)} disabled={
               (currentStep === 1 && !selectedService) ||
