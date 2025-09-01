@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Phone, Globe, Instagram, Star, Clock, DollarSign, Calendar, Facebook } from "lucide-react";
+import { MapPin, Phone, Globe, Instagram, Star, Clock, DollarSign, Calendar, Facebook, Image, Search, Filter } from "lucide-react";
 import { BookingEngine } from "./BookingEngine";
 
 interface PublicProfileData {
@@ -33,6 +34,7 @@ interface PublicProfileData {
     description: string | null;
     price: number | null;
     duration_minutes: number | null;
+    image_url: string | null;
     specialties: { name: string } | null;
   }>;
   portfolioItems: Array<{
@@ -51,6 +53,14 @@ export const PublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showBooking, setShowBooking] = useState(false);
+  
+  // Service filtering and pagination states
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
+  const [serviceCategory, setServiceCategory] = useState<string>('all');
+  const [servicesPerPage] = useState(12);
+  const [currentServicePage, setCurrentServicePage] = useState(1);
+  const [priceRange, setPriceRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('name');
 
   useEffect(() => {
     if (profileId) {
@@ -84,6 +94,7 @@ export const PublicProfile = () => {
           description,
           price,
           duration_minutes,
+          image_url,
           specialties(name)
         `)
         .eq('user_id', profileData.id)
@@ -174,6 +185,66 @@ export const PublicProfile = () => {
   const filteredPortfolio = selectedCategory === 'all' 
     ? portfolioItems 
     : portfolioItems.filter(item => item.specialties?.name === selectedCategory);
+
+  // Get unique service categories
+  const serviceCategories = Array.from(
+    new Set(services.map(service => service.specialties?.name).filter(Boolean))
+  );
+
+  // Filter and sort services
+  const getFilteredAndSortedServices = () => {
+    let filtered = services;
+
+    // Text search
+    if (serviceSearchQuery) {
+      filtered = filtered.filter(service =>
+        service.name.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
+        (service.description && service.description.toLowerCase().includes(serviceSearchQuery.toLowerCase()))
+      );
+    }
+
+    // Category filter
+    if (serviceCategory !== 'all') {
+      filtered = filtered.filter(service => service.specialties?.name === serviceCategory);
+    }
+
+    // Price range filter
+    if (priceRange !== 'all' && priceRange) {
+      const [min, max] = priceRange.split('-').map(Number);
+      filtered = filtered.filter(service => {
+        if (!service.price) return false;
+        if (max) {
+          return service.price >= min && service.price <= max;
+        }
+        return service.price >= min;
+      });
+    }
+
+    // Sort services
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return (a.price || 0) - (b.price || 0);
+        case 'price-high':
+          return (b.price || 0) - (a.price || 0);
+        case 'duration-short':
+          return (a.duration_minutes || 0) - (b.duration_minutes || 0);
+        case 'duration-long':
+          return (b.duration_minutes || 0) - (a.duration_minutes || 0);
+        default: // 'name'
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredServices = getFilteredAndSortedServices();
+  const totalServicePages = Math.ceil(filteredServices.length / servicesPerPage);
+  const paginatedServices = filteredServices.slice(
+    (currentServicePage - 1) * servicesPerPage,
+    currentServicePage * servicesPerPage
+  );
 
   // Show booking interface if user clicked book appointment
   if (showBooking) {
@@ -365,70 +436,281 @@ export const PublicProfile = () => {
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 Professional beauty treatments tailored to your unique needs
               </p>
+              <p className="text-sm text-gray-500 mt-2">
+                {services.length} services available
+              </p>
             </div>
+
+            {/* Search and Filter Controls */}
+            {services.length > 8 && (
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-12">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Search Bar */}
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Search services..."
+                        value={serviceSearchQuery}
+                        onChange={(e) => {
+                          setServiceSearchQuery(e.target.value);
+                          setCurrentServicePage(1);
+                        }}
+                        className="pl-10 h-12 text-lg"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filter Controls */}
+                  <div className="flex flex-wrap gap-3">
+                    {/* Category Filter */}
+                    {serviceCategories.length > 0 && (
+                      <select
+                        value={serviceCategory}
+                        onChange={(e) => {
+                          setServiceCategory(e.target.value);
+                          setCurrentServicePage(1);
+                        }}
+                        className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="all">All Categories</option>
+                        {serviceCategories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {/* Price Range Filter */}
+                    <select
+                      value={priceRange}
+                      onChange={(e) => {
+                        setPriceRange(e.target.value);
+                        setCurrentServicePage(1);
+                      }}
+                      className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="all">All Prices</option>
+                      <option value="0-50">Under ₦50</option>
+                      <option value="50-100">₦50 - ₦100</option>
+                      <option value="100-200">₦100 - ₦200</option>
+                      <option value="200-500">₦200 - ₦500</option>
+                      <option value="500">₦500+</option>
+                    </select>
+
+                    {/* Sort By */}
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="name">Sort A-Z</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="duration-short">Duration: Short to Long</option>
+                      <option value="duration-long">Duration: Long to Short</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Results Summary */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    Showing {paginatedServices.length} of {filteredServices.length} services
+                    {serviceSearchQuery && (
+                      <span className="ml-2 text-purple-600">for "{serviceSearchQuery}"</span>
+                    )}
+                    {(serviceCategory !== 'all' || priceRange !== 'all') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setServiceSearchQuery('');
+                          setServiceCategory('all');
+                          setPriceRange('all');
+                          setSortBy('name');
+                          setCurrentServicePage(1);
+                        }}
+                        className="ml-2 text-purple-600 hover:text-purple-700 p-0 h-auto"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {services.map((service, index) => (
+            {/* Services Grid */}
+            {filteredServices.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No services found</h3>
+                <p className="text-gray-600 mb-4">
+                  {serviceSearchQuery 
+                    ? `No services match your search for "${serviceSearchQuery}"`
+                    : 'No services match your current filters'
+                  }
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setServiceSearchQuery('');
+                    setServiceCategory('all');
+                    setPriceRange('all');
+                    setSortBy('name');
+                    setCurrentServicePage(1);
+                  }}
+                >
+                  Clear all filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                  {paginatedServices.map((service, index) => (
                 <div 
                   key={service.id} 
-                  className="group relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100"
+                  className="group relative bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  {/* Border Effect */}
-                  <div className="absolute -inset-0.5 bg-purple-600 rounded-3xl opacity-0 group-hover:opacity-100 transition duration-300 blur-sm"></div>
-                  <div className="relative bg-white rounded-3xl p-8 -m-8">
+                  {/* Service Image */}
+                  <div className="relative">
+                    {service.image_url ? (
+                      <div className="h-40 overflow-hidden">
+                        <img
+                          src={service.image_url}
+                          alt={service.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-40 bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
+                        <Image className="w-12 h-12 text-purple-300" />
+                      </div>
+                    )}
                     
+                    {/* Price Badge */}
+                    {service.price && (
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
+                        <span className="text-lg font-bold text-purple-600 flex items-center">
+                          ₦{service.price.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Card Content */}
+                  <div className="p-4">
                     {/* Service Header */}
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">
-                          {service.name}
-                        </h3>
+                    <div className="mb-3">
+                      <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-purple-600 transition-colors">
+                        {service.name}
+                      </h3>
+                      <div className="flex items-center gap-2">
                         {service.specialties && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs">
                             {service.specialties.name}
                           </Badge>
                         )}
+                        {service.duration_minutes && (
+                          <div className="flex items-center gap-1 text-gray-500">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-xs">{service.duration_minutes}min</span>
+                          </div>
+                        )}
                       </div>
-                      
-                      {/* Price Badge */}
-                      {service.price && (
-                        <div className="bg-purple-600 text-white rounded-2xl px-4 py-2 transform group-hover:scale-110 transition-transform">
-                          <span className="text-2xl font-bold flex items-center gap-1">
-                            <DollarSign className="w-5 h-5" />
-                            {service.price}
-                          </span>
-                        </div>
-                      )}
                     </div>
                     
                     {/* Description */}
                     {service.description && (
-                      <p className="text-gray-600 leading-relaxed mb-6 text-lg">
+                      <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
                         {service.description}
                       </p>
                     )}
                     
-                    {/* Duration and Book Button */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      {service.duration_minutes && (
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Clock className="w-5 h-5" />
-                          <span className="font-medium">{service.duration_minutes} minutes</span>
-                        </div>
-                      )}
-                      
-                      <Button 
-                        className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                        onClick={() => setShowBooking(true)}
-                      >
-                        Book Now
-                      </Button>
-                    </div>
+                    {/* Book Button */}
+                    <Button 
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-sm font-semibold transition-all duration-300"
+                      onClick={() => setShowBooking(true)}
+                    >
+                      Book Now
+                    </Button>
                   </div>
                 </div>
               ))}
-            </div>
+                </div>
+
+                {/* Pagination */}
+                {totalServicePages > 1 && (
+                  <div className="mt-16 flex justify-center">
+                    <div className="flex items-center gap-2">
+                      {/* Previous Button */}
+                      <Button
+                        variant="outline"
+                        disabled={currentServicePage === 1}
+                        onClick={() => setCurrentServicePage(prev => Math.max(1, prev - 1))}
+                        className="rounded-full"
+                      >
+                        Previous
+                      </Button>
+
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalServicePages }, (_, i) => i + 1).map((page) => {
+                          const isCurrentPage = page === currentServicePage;
+                          const showPage = 
+                            page === 1 || 
+                            page === totalServicePages || 
+                            (page >= currentServicePage - 1 && page <= currentServicePage + 1);
+
+                          if (!showPage) {
+                            if (page === currentServicePage - 2 || page === currentServicePage + 2) {
+                              return (
+                                <span key={page} className="px-2 text-gray-400">
+                                  ...
+                                </span>
+                              );
+                            }
+                            return null;
+                          }
+
+                          return (
+                            <Button
+                              key={page}
+                              variant={isCurrentPage ? "default" : "ghost"}
+                              size="sm"
+                              onClick={() => setCurrentServicePage(page)}
+                              className={`w-10 h-10 rounded-full ${
+                                isCurrentPage 
+                                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                                  : 'hover:bg-gray-100'
+                              }`}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Next Button */}
+                      <Button
+                        variant="outline"
+                        disabled={currentServicePage === totalServicePages}
+                        onClick={() => setCurrentServicePage(prev => Math.min(totalServicePages, prev + 1))}
+                        className="rounded-full"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
