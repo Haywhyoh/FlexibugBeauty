@@ -22,6 +22,7 @@ interface Profile {
   business_slug: string | null;
   bio: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   location: string | null;
   instagram_handle: string | null;
   facebook_handle: string | null;
@@ -37,6 +38,7 @@ export const ProfileEditor = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [profile, setProfile] = useState<Profile>({
     id: user?.id || '',
     first_name: '',
@@ -48,6 +50,7 @@ export const ProfileEditor = () => {
     business_slug: '',
     bio: '',
     avatar_url: '',
+    cover_url: '',
     location: '',
     instagram_handle: '',
     facebook_handle: '',
@@ -97,6 +100,7 @@ export const ProfileEditor = () => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user?.id}/avatar.${fileExt}`;
 
+      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
@@ -107,14 +111,31 @@ export const ProfileEditor = () => {
         .from('avatars')
         .getPublicUrl(filePath);
 
+      // Update local state
       setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      // Auto-save to database immediately
+      const { error: saveError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user?.id,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (saveError) {
+        console.error('Error saving avatar URL to database:', saveError);
+        throw saveError;
+      }
+
+      console.log('Avatar auto-saved to database');
       
       toast({
         title: "Success",
-        description: "Avatar uploaded successfully",
+        description: "Avatar uploaded and saved successfully!",
       });
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error('Error uploading/saving avatar:', error);
       toast({
         title: "Error",
         description: "Failed to upload avatar",
@@ -122,6 +143,64 @@ export const ProfileEditor = () => {
       });
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingCover(true);
+      
+      if (!event.target.files || event.target.files.length === 0) return;
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}/cover.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update local state
+      setProfile(prev => ({ ...prev, cover_url: publicUrl }));
+      
+      console.log('Cover image uploaded, URL set to:', publicUrl);
+      
+      // Auto-save to database immediately
+      const { error: saveError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user?.id,
+          cover_url: publicUrl,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (saveError) {
+        console.error('Error saving cover URL to database:', saveError);
+        throw saveError;
+      }
+
+      console.log('Cover image auto-saved to database');
+      
+      toast({
+        title: "Success",
+        description: "Cover image uploaded and saved successfully!",
+      });
+    } catch (error) {
+      console.error('Error uploading/saving cover:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload cover image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingCover(false);
     }
   };
 
@@ -228,6 +307,95 @@ export const ProfileEditor = () => {
                 Upload a professional photo to help clients recognize you
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Cover Image Section */}
+        <Card className="bg-white/70 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Camera className="w-4 h-4 lg:w-5 lg:h-5" />
+              Cover Image
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Cover Image Preview */}
+            <div className="relative w-full h-32 sm:h-40 lg:h-48 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg overflow-hidden">
+              {profile.cover_url ? (
+                <img 
+                  src={profile.cover_url} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <div className="text-center">
+                    <Camera className="w-8 h-8 mx-auto mb-2" />
+                    <p className="text-sm">No cover image uploaded</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Upload Button Overlay */}
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                <input
+                  type="file"
+                  id="cover"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
+                <label htmlFor="cover">
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    disabled={uploadingCover} 
+                    className="opacity-0 hover:opacity-100 transition-opacity duration-300"
+                    asChild
+                  >
+                    <span className="cursor-pointer">
+                      <Camera className="w-4 h-4 mr-2" />
+                      {uploadingCover ? "Uploading..." : "Change Cover"}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <input
+                  type="file"
+                  id="cover-button"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  className="hidden"
+                />
+                <label htmlFor="cover-button">
+                  <Button type="button" variant="outline" disabled={uploadingCover} asChild>
+                    <span className="cursor-pointer">
+                      <Camera className="w-4 h-4 mr-2" />
+                      {uploadingCover ? "Uploading..." : "Upload Cover Image"}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+              {profile.cover_url && (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setProfile(prev => ({ ...prev, cover_url: '' }))}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Remove Cover
+                </Button>
+              )}
+            </div>
+            
+            <p className="text-xs lg:text-sm text-gray-500">
+              Upload a cover image to make your profile stand out. Recommended size: 1200x400 pixels
+            </p>
           </CardContent>
         </Card>
 

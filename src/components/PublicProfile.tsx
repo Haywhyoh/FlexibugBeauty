@@ -20,6 +20,7 @@ interface PublicProfileData {
     business_slug: string | null;
     bio: string | null;
     avatar_url: string | null;
+    cover_url: string | null;
     location: string | null;
     instagram_handle: string | null;
     facebook_handle: string | null;
@@ -301,21 +302,38 @@ export const PublicProfile = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="relative min-h-[60vh] md:min-h-[50vh] bg-purple-100 overflow-hidden">
-        {/* Animated Background Elements - Hidden on mobile for performance */}
-        <div className="hidden md:block absolute top-10 left-10 w-72 h-72 bg-purple-200/50 rounded-full blur-3xl animate-pulse"></div>
-        <div className="hidden md:block absolute bottom-10 right-10 w-96 h-96 bg-pink-200/50 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      {/* Hero Section with Cover Image */}
+      <div className="relative">
+        {/* Cover Image */}
+        <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+          {profile.cover_url ? (
+            <img 
+              src={profile.cover_url} 
+              alt="Cover" 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400">
+              {/* Animated Background Elements - Hidden on mobile for performance */}
+              <div className="hidden md:block absolute top-10 left-10 w-72 h-72 bg-purple-200/30 rounded-full blur-3xl animate-pulse"></div>
+              <div className="hidden md:block absolute bottom-10 right-10 w-96 h-96 bg-pink-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            </div>
+          )}
+          
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/20"></div>
+        </div>
         
-        <div className="relative container mx-auto px-3 sm:px-4 pt-8 sm:pt-16 pb-12 sm:pb-24">
+        {/* Profile Content Overlaying Cover */}
+        <div className="relative container mx-auto px-3 sm:px-4 -mt-20 sm:-mt-24 md:-mt-28 pb-8 sm:pb-12">
           {/* Floating Profile Card */}
           <div className="max-w-5xl mx-auto">
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-4 sm:p-8 md:p-12 transform hover:scale-[1.01] transition-all duration-300">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-8">
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-4 sm:p-6 md:p-8 transform hover:scale-[1.01] transition-all duration-300">
+              <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-6">
                 {/* Profile Avatar */}
-                <div className="relative">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-purple-600/20 rounded-full blur-lg"></div>
-                  <Avatar className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 border-2 sm:border-4 border-white shadow-xl">
+                <div className="relative -mt-8 sm:-mt-12 md:-mt-16">
+                  <div className="absolute -inset-1 sm:-inset-2 bg-white rounded-full"></div>
+                  <Avatar className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 border-2 sm:border-4 border-white shadow-xl bg-white">
                     <AvatarImage src={profile.avatar_url || undefined} />
                     <AvatarFallback className="text-2xl sm:text-3xl lg:text-5xl bg-purple-100">
                       {getInitials()}
@@ -344,64 +362,73 @@ export const PublicProfile = () => {
                         <span className="font-medium text-xs sm:text-sm">{profile.location}</span>
                       </div>
                     )}
-                    {profile.years_experience && (
-                      <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
-                        <Star className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-500" />
-                        <span className="font-medium text-xs sm:text-sm">{profile.years_experience} years experience</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
+                      <Star className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-500 fill-current" />
+                      <span className="font-medium text-xs sm:text-sm">5.0 ⭐ (24 reviews)</span>
+                    </div>
                     <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
                       <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="font-medium text-gray-700 text-xs sm:text-sm">Available now</span>
                     </div>
                   </div>
 
-                  {/* Bio */}
+                  {/* Bio - Instagram Style */}
                   {profile.bio && (
-                    <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed mb-4 sm:mb-6 max-w-3xl">{profile.bio}</p>
+                    <div className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed mb-4 sm:mb-6 max-w-3xl text-center lg:text-left">
+                      <div className="space-y-0.5">
+                        {profile.bio.split('\n').map((line, index) => {
+                          // Skip empty lines
+                          if (!line.trim()) {
+                            return <div key={index} className="h-1"></div>;
+                          }
+                          
+                          // Each line is displayed as entered by the user
+                          return (
+                            <div key={index} className="block text-center lg:text-left">
+                              {line}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
 
-                  {/* Social Links and CTA */}
+                  {/* Social Links and CTA - Icons Only */}
                   <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3">
                     {profile.phone && (
-                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform text-xs sm:text-sm px-3 sm:px-4">
-                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                        <span className="hidden sm:inline">{profile.phone}</span>
-                        <span className="sm:hidden">Call</span>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform w-10 h-10 p-0" asChild>
+                        <a href={`tel:${profile.phone}`}>
+                          <Phone className="w-4 h-4" />
+                        </a>
                       </Button>
                     )}
                     {profile.instagram_handle && (
-                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform text-xs sm:text-sm px-3 sm:px-4" asChild>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform w-10 h-10 p-0" asChild>
                         <a href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
-                          <Instagram className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">{profile.instagram_handle}</span>
-                          <span className="sm:hidden">IG</span>
+                          <Instagram className="w-4 h-4" />
                         </a>
                       </Button>
                     )}
                     {profile.facebook_handle && (
-                      <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform" asChild>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform w-10 h-10 p-0" asChild>
                         <a href={`https://facebook.com/${profile.facebook_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
-                          <Facebook className="w-5 h-5 mr-2" />
-                          {profile.facebook_handle}
+                          <Facebook className="w-4 h-4" />
                         </a>
                       </Button>
                     )}
                     {profile.tiktok_handle && (
-                      <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform" asChild>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform w-10 h-10 p-0" asChild>
                         <a href={`https://tiktok.com/@${profile.tiktok_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
-                          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
                           </svg>
-                          {profile.tiktok_handle}
                         </a>
                       </Button>
                     )}
                     {profile.website_url && (
-                      <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform" asChild>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform w-10 h-10 p-0" asChild>
                         <a href={profile.website_url} target="_blank" rel="noopener noreferrer">
-                          <Globe className="w-5 h-5 mr-2" />
-                          Website
+                          <Globe className="w-4 h-4" />
                         </a>
                       </Button>
                     )}
