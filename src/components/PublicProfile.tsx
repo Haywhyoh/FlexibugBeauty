@@ -302,78 +302,80 @@ export const PublicProfile = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative min-h-[50vh] bg-purple-100 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute top-10 left-10 w-72 h-72 bg-purple-200/50 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-pink-200/50 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="relative min-h-[60vh] md:min-h-[50vh] bg-purple-100 overflow-hidden">
+        {/* Animated Background Elements - Hidden on mobile for performance */}
+        <div className="hidden md:block absolute top-10 left-10 w-72 h-72 bg-purple-200/50 rounded-full blur-3xl animate-pulse"></div>
+        <div className="hidden md:block absolute bottom-10 right-10 w-96 h-96 bg-pink-200/50 rounded-full blur-3xl animate-pulse delay-1000"></div>
         
-        <div className="relative container mx-auto px-4 pt-16 pb-24">
+        <div className="relative container mx-auto px-3 sm:px-4 pt-8 sm:pt-16 pb-12 sm:pb-24">
           {/* Floating Profile Card */}
           <div className="max-w-5xl mx-auto">
-            <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12 transform hover:scale-[1.01] transition-all duration-300">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+            <div className="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-4 sm:p-8 md:p-12 transform hover:scale-[1.01] transition-all duration-300">
+              <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 sm:gap-8">
                 {/* Profile Avatar */}
                 <div className="relative">
-                  <div className="absolute -inset-4 bg-purple-600/20 rounded-full blur-lg"></div>
-                  <Avatar className="relative w-40 h-40 border-4 border-white shadow-xl">
+                  <div className="absolute -inset-2 sm:-inset-4 bg-purple-600/20 rounded-full blur-lg"></div>
+                  <Avatar className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 border-2 sm:border-4 border-white shadow-xl">
                     <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="text-5xl bg-purple-100">
+                    <AvatarFallback className="text-2xl sm:text-3xl lg:text-5xl bg-purple-100">
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
                   {/* Status Indicator */}
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
+                  <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full border-2 sm:border-4 border-white shadow-lg animate-pulse"></div>
                 </div>
 
                 <div className="flex-1 text-center lg:text-left">
                   {/* Name and Title */}
-                  <div className="mb-6">
-                    <h1 className="text-5xl lg:text-6xl font-bold text-purple-800 mb-3 leading-tight">
+                  <div className="mb-4 sm:mb-6">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-purple-800 mb-2 sm:mb-3 leading-tight">
                       {profile.business_name || getDisplayName()}
                     </h1>
                     {profile.business_name && getDisplayName() !== profile.business_name && (
-                      <p className="text-2xl text-gray-700 mb-2">{getDisplayName()}</p>
+                      <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-1 sm:mb-2">{getDisplayName()}</p>
                     )}
                   </div>
                   
                   {/* Stats Row */}
-                  <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-gray-600 mb-6">
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 text-gray-600 mb-4 sm:mb-6">
                     {profile.location && (
-                      <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
-                        <MapPin className="w-5 h-5 text-purple-600" />
-                        <span className="font-medium">{profile.location}</span>
+                      <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
+                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-purple-600" />
+                        <span className="font-medium text-xs sm:text-sm">{profile.location}</span>
                       </div>
                     )}
                     {profile.years_experience && (
-                      <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
-                        <Star className="w-5 h-5 text-yellow-500" />
-                        <span className="font-medium">{profile.years_experience} years experience</span>
+                      <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
+                        <Star className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-500" />
+                        <span className="font-medium text-xs sm:text-sm">{profile.years_experience} years experience</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 bg-purple-100 rounded-full px-4 py-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium text-gray-700">Available now</span>
+                    <div className="flex items-center gap-1 sm:gap-2 bg-purple-100 rounded-full px-2 sm:px-3 md:px-4 py-1 sm:py-2">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium text-gray-700 text-xs sm:text-sm">Available now</span>
                     </div>
                   </div>
 
                   {/* Bio */}
                   {profile.bio && (
-                    <p className="text-lg text-gray-700 leading-relaxed mb-6 max-w-3xl">{profile.bio}</p>
+                    <p className="text-sm sm:text-base md:text-lg text-gray-700 leading-relaxed mb-4 sm:mb-6 max-w-3xl">{profile.bio}</p>
                   )}
 
                   {/* Social Links and CTA */}
-                  <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3">
                     {profile.phone && (
-                      <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform">
-                        <Phone className="w-5 h-5 mr-2" />
-                        {profile.phone}
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform text-xs sm:text-sm px-3 sm:px-4">
+                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">{profile.phone}</span>
+                        <span className="sm:hidden">Call</span>
                       </Button>
                     )}
                     {profile.instagram_handle && (
-                      <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform" asChild>
+                      <Button variant="outline" size="sm" className="rounded-full hover:scale-105 transition-transform text-xs sm:text-sm px-3 sm:px-4" asChild>
                         <a href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
-                          <Instagram className="w-5 h-5 mr-2" />
-                          {profile.instagram_handle}
+                          <Instagram className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          <span className="hidden sm:inline">{profile.instagram_handle}</span>
+                          <span className="sm:hidden">IG</span>
                         </a>
                       </Button>
                     )}
@@ -408,14 +410,15 @@ export const PublicProfile = () => {
               </div>
               
               {/* Primary CTA */}
-              <div className="mt-8 text-center">
+              <div className="mt-6 sm:mt-8 text-center">
                 <Button 
                   size="lg"
-                  className="bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                   onClick={() => setShowBooking(true)}
                 >
-                  <Calendar className="w-6 h-6 mr-3" />
-                  Book Your Appointment Now
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 sm:mr-3" />
+                  <span className="hidden sm:inline">Book Your Appointment Now</span>
+                  <span className="sm:hidden">Book Appointment</span>
                 </Button>
               </div>
             </div>
@@ -428,61 +431,84 @@ export const PublicProfile = () => {
 
         {/* Services Section */}
         {services.length > 0 && (
-          <div className="container mx-auto px-4 py-16 max-w-7xl">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-purple-800 mb-4">
+          <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 lg:py-16 max-w-7xl">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-800 mb-2 sm:mb-4">
                 Services & Pricing
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto px-4">
                 Professional beauty treatments tailored to your unique needs
               </p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">
                 {services.length} services available
               </p>
             </div>
 
-            {/* Search and Filter Controls */}
+            {/* Category Filter (Portfolio Style) */}
+            {serviceCategories.length > 0 && (
+              <div className="flex justify-center mb-8 sm:mb-12">
+                <div className="bg-white rounded-full p-2 shadow-lg border border-gray-100 max-w-full overflow-hidden">
+                  <div className="flex gap-1 sm:gap-2 overflow-x-auto scrollbar-hide px-2">
+                    <Button
+                      variant={serviceCategory === 'all' ? "default" : "ghost"}
+                      size="sm"
+                      className={`${serviceCategory === 'all' 
+                        ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full" 
+                        : "rounded-full hover:bg-gray-100"
+                      } whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 py-2`}
+                      onClick={() => {
+                        setServiceCategory('all');
+                        setCurrentServicePage(1);
+                      }}
+                    >
+                      All Services ({services.length})
+                    </Button>
+                    {serviceCategories.map((category) => {
+                      const count = services.filter(service => service.specialties?.name === category).length;
+                      return (
+                        <Button
+                          key={category}
+                          variant={serviceCategory === category ? "default" : "ghost"}
+                          size="sm"
+                          className={`${serviceCategory === category 
+                            ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full" 
+                            : "rounded-full hover:bg-gray-100"
+                          } whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 py-2`}
+                          onClick={() => {
+                            setServiceCategory(category);
+                            setCurrentServicePage(1);
+                          }}
+                        >
+                          {category} ({count})
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Advanced Search and Filters - Only show for large lists */}
             {services.length > 8 && (
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-12">
-                <div className="flex flex-col lg:flex-row gap-4">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 mb-8 sm:mb-12">
+                <div className="flex flex-col gap-4">
                   {/* Search Bar */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input
-                        type="text"
-                        placeholder="Search services..."
-                        value={serviceSearchQuery}
-                        onChange={(e) => {
-                          setServiceSearchQuery(e.target.value);
-                          setCurrentServicePage(1);
-                        }}
-                        className="pl-10 h-12 text-lg"
-                      />
-                    </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search services..."
+                      value={serviceSearchQuery}
+                      onChange={(e) => {
+                        setServiceSearchQuery(e.target.value);
+                        setCurrentServicePage(1);
+                      }}
+                      className="pl-10 sm:pl-12 h-10 sm:h-12 text-sm sm:text-base"
+                    />
                   </div>
 
                   {/* Filter Controls */}
-                  <div className="flex flex-wrap gap-3">
-                    {/* Category Filter */}
-                    {serviceCategories.length > 0 && (
-                      <select
-                        value={serviceCategory}
-                        onChange={(e) => {
-                          setServiceCategory(e.target.value);
-                          setCurrentServicePage(1);
-                        }}
-                        className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      >
-                        <option value="all">All Categories</option>
-                        {serviceCategories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-
+                  <div className="flex flex-col sm:flex-row gap-3">
                     {/* Price Range Filter */}
                     <select
                       value={priceRange}
@@ -490,21 +516,21 @@ export const PublicProfile = () => {
                         setPriceRange(e.target.value);
                         setCurrentServicePage(1);
                       }}
-                      className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl text-xs sm:text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="all">All Prices</option>
-                      <option value="0-50">Under ₦50</option>
-                      <option value="50-100">₦50 - ₦100</option>
-                      <option value="100-200">₦100 - ₦200</option>
-                      <option value="200-500">₦200 - ₦500</option>
-                      <option value="500">₦500+</option>
+                      <option value="0-5000">Under ₦5,000</option>
+                      <option value="5000-15000">₦5,000 - ₦15,000</option>
+                      <option value="15000-30000">₦15,000 - ₦30,000</option>
+                      <option value="30000-50000">₦30,000 - ₦50,000</option>
+                      <option value="50000">₦50,000+</option>
                     </select>
 
                     {/* Sort By */}
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl text-xs sm:text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="name">Sort A-Z</option>
                       <option value="price-low">Price: Low to High</option>
@@ -513,32 +539,34 @@ export const PublicProfile = () => {
                       <option value="duration-long">Duration: Long to Short</option>
                     </select>
                   </div>
-                </div>
 
-                {/* Results Summary */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600">
-                    Showing {paginatedServices.length} of {filteredServices.length} services
-                    {serviceSearchQuery && (
-                      <span className="ml-2 text-purple-600">for "{serviceSearchQuery}"</span>
-                    )}
-                    {(serviceCategory !== 'all' || priceRange !== 'all') && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setServiceSearchQuery('');
-                          setServiceCategory('all');
-                          setPriceRange('all');
-                          setSortBy('name');
-                          setCurrentServicePage(1);
-                        }}
-                        className="ml-2 text-purple-600 hover:text-purple-700 p-0 h-auto"
-                      >
-                        Clear filters
-                      </Button>
-                    )}
-                  </p>
+                  {/* Results Summary */}
+                  <div className="pt-3 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Showing {paginatedServices.length} of {filteredServices.length} services
+                        {serviceSearchQuery && (
+                          <span className="ml-2 text-purple-600">for "{serviceSearchQuery}"</span>
+                        )}
+                      </p>
+                      {(serviceCategory !== 'all' || priceRange !== 'all' || serviceSearchQuery) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setServiceSearchQuery('');
+                            setServiceCategory('all');
+                            setPriceRange('all');
+                            setSortBy('name');
+                            setCurrentServicePage(1);
+                          }}
+                          className="text-purple-600 hover:text-purple-700 p-0 h-auto text-xs sm:text-sm"
+                        >
+                          Clear all filters
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -571,17 +599,17 @@ export const PublicProfile = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {paginatedServices.map((service, index) => (
                 <div 
                   key={service.id} 
                   className="group relative bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Service Image */}
                   <div className="relative">
                     {service.image_url ? (
-                      <div className="h-40 overflow-hidden">
+                      <div className="h-32 sm:h-40 overflow-hidden">
                         <img
                           src={service.image_url}
                           alt={service.name}
@@ -589,15 +617,15 @@ export const PublicProfile = () => {
                         />
                       </div>
                     ) : (
-                      <div className="h-40 bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-                        <Image className="w-12 h-12 text-purple-300" />
+                      <div className="h-32 sm:h-40 bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
+                        <Image className="w-8 h-8 sm:w-12 sm:h-12 text-purple-300" />
                       </div>
                     )}
                     
                     {/* Price Badge */}
                     {service.price && (
-                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
-                        <span className="text-lg font-bold text-purple-600 flex items-center">
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/95 backdrop-blur-sm rounded-full px-2 py-0.5 sm:px-3 sm:py-1 shadow-lg">
+                        <span className="text-sm sm:text-lg font-bold text-purple-600 flex items-center">
                           ₦{service.price.toLocaleString()}
                         </span>
                       </div>
@@ -605,15 +633,15 @@ export const PublicProfile = () => {
                   </div>
                   
                   {/* Card Content */}
-                  <div className="p-4">
+                  <div className="p-3 sm:p-4">
                     {/* Service Header */}
-                    <div className="mb-3">
-                      <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-purple-600 transition-colors">
+                    <div className="mb-2 sm:mb-3">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 line-clamp-1 group-hover:text-purple-600 transition-colors">
                         {service.name}
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                         {service.specialties && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs">
+                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs px-2 py-0.5">
                             {service.specialties.name}
                           </Badge>
                         )}
@@ -628,14 +656,14 @@ export const PublicProfile = () => {
                     
                     {/* Description */}
                     {service.description && (
-                      <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
+                      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2">
                         {service.description}
                       </p>
                     )}
                     
                     {/* Book Button */}
                     <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-sm font-semibold transition-all duration-300"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-xs sm:text-sm font-semibold transition-all duration-300"
                       onClick={() => setShowBooking(true)}
                     >
                       Book Now
@@ -647,16 +675,17 @@ export const PublicProfile = () => {
 
                 {/* Pagination */}
                 {totalServicePages > 1 && (
-                  <div className="mt-16 flex justify-center">
-                    <div className="flex items-center gap-2">
+                  <div className="mt-8 sm:mt-12 lg:mt-16 flex justify-center px-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       {/* Previous Button */}
                       <Button
                         variant="outline"
                         disabled={currentServicePage === 1}
                         onClick={() => setCurrentServicePage(prev => Math.max(1, prev - 1))}
-                        className="rounded-full"
+                        className="rounded-full text-xs sm:text-sm px-3 sm:px-4 py-2"
                       >
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
+                        <span className="sm:hidden">Prev</span>
                       </Button>
 
                       {/* Page Numbers */}
@@ -685,7 +714,7 @@ export const PublicProfile = () => {
                               variant={isCurrentPage ? "default" : "ghost"}
                               size="sm"
                               onClick={() => setCurrentServicePage(page)}
-                              className={`w-10 h-10 rounded-full ${
+                              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full text-xs sm:text-sm ${
                                 isCurrentPage 
                                   ? 'bg-purple-600 hover:bg-purple-700 text-white'
                                   : 'hover:bg-gray-100'
@@ -702,9 +731,10 @@ export const PublicProfile = () => {
                         variant="outline"
                         disabled={currentServicePage === totalServicePages}
                         onClick={() => setCurrentServicePage(prev => Math.min(totalServicePages, prev + 1))}
-                        className="rounded-full"
+                        className="rounded-full text-xs sm:text-sm px-3 sm:px-4 py-2"
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
+                        <span className="sm:hidden">Next</span>
                       </Button>
                     </div>
                   </div>
@@ -830,27 +860,27 @@ export const PublicProfile = () => {
         )}
         
         {/* Contact Section */}
-        <div className="container mx-auto px-4 py-16 max-w-4xl text-center">
-          <div className="bg-purple-600 rounded-3xl p-12 text-white relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
+        <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 lg:py-16 max-w-4xl text-center">
+          <div className="bg-purple-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden">
+            {/* Background Pattern - Hidden on mobile */}
+            <div className="hidden sm:block absolute inset-0 opacity-10">
               <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-20 -translate-y-20"></div>
               <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full translate-x-30 translate-y-30"></div>
             </div>
             
             <div className="relative">
-              <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Look?</h2>
-              <p className="text-xl mb-8 opacity-90">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Ready to Transform Your Look?</h2>
+              <p className="text-sm sm:text-base lg:text-xl mb-6 sm:mb-8 opacity-90 leading-relaxed">
                 Book your appointment today and experience professional beauty services that enhance your natural beauty.
               </p>
               
-              <div className="flex flex-wrap gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button 
                   size="lg"
-                  className="bg-white text-purple-600 hover:bg-gray-50 rounded-full px-8 py-4 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300"
+                  className="bg-white text-purple-600 hover:bg-gray-50 rounded-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                   onClick={() => setShowBooking(true)}
                 >
-                  <Calendar className="w-6 h-6 mr-3" />
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 mr-2 sm:mr-3" />
                   Book Appointment
                 </Button>
                 
@@ -858,11 +888,11 @@ export const PublicProfile = () => {
                   <Button 
                     variant="outline" 
                     size="lg"
-                    className="border-white text-white hover:bg-white hover:text-purple-600 rounded-full px-8 py-4 text-lg font-semibold"
+                    className="border-white text-white hover:bg-white hover:text-purple-600 rounded-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold w-full sm:w-auto"
                     asChild
                   >
                     <a href={`tel:${profile.phone}`}>
-                      <Phone className="w-6 h-6 mr-3" />
+                      <Phone className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 mr-2 sm:mr-3" />
                       Call Now
                     </a>
                   </Button>
@@ -874,13 +904,13 @@ export const PublicProfile = () => {
       </div>
       
       {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-50">
         <Button
           size="lg"
-          className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-16 h-16 shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 animate-bounce"
+          className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 animate-bounce"
           onClick={() => setShowBooking(true)}
         >
-          <Calendar className="w-8 h-8" />
+          <Calendar className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" />
         </Button>
       </div>
     </div>
