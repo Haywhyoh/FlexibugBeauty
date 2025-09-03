@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useServiceUpload } from "@/hooks/useServiceUpload";
-import { Plus, Edit, Trash2, Save, X, DollarSign, Clock, MoreVertical, Eye, Upload, Image, Search, Filter } from "lucide-react";
+import { ServiceRequirements } from "@/components/ServiceRequirements";
+import { Plus, Edit, Trash2, Save, X, DollarSign, Clock, MoreVertical, Eye, Upload, Image, Search, Filter, Settings, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,12 @@ interface Service {
   specialty_id: string | null;
   is_active: boolean | null;
   image_url: string | null;
+  client_instructions: string | null;
+  preparation_time: number | null;
+  service_notes: string | null;
+  requires_consultation: boolean | null;
+  cancellation_policy: string | null;
+  complexity_level: string | null;
   created_at: string;
 }
 
@@ -94,11 +101,18 @@ export const ServicesManager = () => {
     specialty_id: '',
     category: '',
     subcategory: '',
+    client_instructions: '',
+    preparation_time: '',
+    service_notes: '',
+    requires_consultation: false,
+    cancellation_policy: '',
+    complexity_level: 'basic',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   
   const { uploadServiceImage, deleteServiceImage } = useServiceUpload(() => {
     fetchServices();
@@ -159,6 +173,12 @@ export const ServicesManager = () => {
         specialty_id: newService.specialty_id || null,
         is_active: true,
         image_url: imageUrl,
+        client_instructions: newService.client_instructions || null,
+        preparation_time: newService.preparation_time ? parseInt(newService.preparation_time) : null,
+        service_notes: newService.service_notes || null,
+        requires_consultation: newService.requires_consultation,
+        cancellation_policy: newService.cancellation_policy || null,
+        complexity_level: newService.complexity_level,
       };
 
       const { error } = await supabase
@@ -261,6 +281,7 @@ export const ServicesManager = () => {
     setSelectedSubcategory('');
     setSelectedFile(null);
     setPreviewUrl(null);
+    setShowAdvancedSettings(false);
     setNewService({
       name: '',
       description: '',
@@ -269,6 +290,12 @@ export const ServicesManager = () => {
       specialty_id: '',
       category: '',
       subcategory: '',
+      client_instructions: '',
+      preparation_time: '',
+      service_notes: '',
+      requires_consultation: false,
+      cancellation_policy: '',
+      complexity_level: 'basic',
     });
   };
 
@@ -461,6 +488,103 @@ export const ServicesManager = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Client Instructions */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium mb-2">
+                    Client Instructions (What should clients bring/know?)
+                  </label>
+                  <Textarea
+                    value={newService.client_instructions}
+                    onChange={(e) => setNewService(prev => ({ ...prev, client_instructions: e.target.value }))}
+                    placeholder="e.g., Bring clean hair, no makeup, arrive 15 minutes early..."
+                    rows={3}
+                    className="w-full resize-none"
+                  />
+                </div>
+
+                {/* Advanced Settings Toggle */}
+                <div className="w-full border-t pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                    className="w-full flex items-center justify-center gap-2 text-purple-600 hover:text-purple-700"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Advanced Settings
+                    {showAdvancedSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </div>
+
+                {/* Advanced Settings Section */}
+                {showAdvancedSettings && (
+                  <div className="w-full space-y-4 bg-gray-50 p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Preparation Time (minutes)</label>
+                        <Input
+                          type="number"
+                          value={newService.preparation_time}
+                          onChange={(e) => setNewService(prev => ({ ...prev, preparation_time: e.target.value }))}
+                          placeholder="15"
+                          className="w-full"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Time needed to prepare before service starts</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Service Complexity</label>
+                        <select
+                          value={newService.complexity_level}
+                          onChange={(e) => setNewService(prev => ({ ...prev, complexity_level: e.target.value }))}
+                          className="w-full p-2 border rounded-md text-sm"
+                        >
+                          <option value="basic">Basic</option>
+                          <option value="intermediate">Intermediate</option>
+                          <option value="advanced">Advanced</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="requires_consultation"
+                        checked={newService.requires_consultation}
+                        onChange={(e) => setNewService(prev => ({ ...prev, requires_consultation: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <label htmlFor="requires_consultation" className="text-sm text-gray-700 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-orange-500" />
+                        Requires consultation before booking
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Internal Service Notes</label>
+                      <Textarea
+                        value={newService.service_notes}
+                        onChange={(e) => setNewService(prev => ({ ...prev, service_notes: e.target.value }))}
+                        placeholder="Internal notes for your reference (not visible to clients)..."
+                        rows={2}
+                        className="w-full resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Cancellation Policy</label>
+                      <Textarea
+                        value={newService.cancellation_policy}
+                        onChange={(e) => setNewService(prev => ({ ...prev, cancellation_policy: e.target.value }))}
+                        placeholder="e.g., 24-hour cancellation required, 50% charge for same-day cancellation..."
+                        rows={2}
+                        className="w-full resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-2 justify-end w-full">
                   <Button variant="outline" onClick={resetServiceForm} className="w-full sm:w-auto">

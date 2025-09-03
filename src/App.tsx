@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import PublicFormPage from "./pages/PublicFormPage";
+import { BookingPage } from "./pages/BookingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -36,6 +37,10 @@ const App = () => (
             <Route 
               path="/profile/:profileId" 
               element={<PublicProfilePage />} 
+            />
+            <Route 
+              path="/profile/:profileId/book/:serviceId" 
+              element={<BookingPage />} 
             />
             <Route 
               path="/form/:formId" 

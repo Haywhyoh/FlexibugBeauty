@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Phone, Globe, Instagram, Star, Clock, DollarSign, Calendar, Facebook, Image, Search, Filter } from "lucide-react";
-import { BookingEngine } from "./BookingEngine";
+import { MapPin, Phone, Globe, Instagram, Star, Clock, DollarSign, Calendar, Facebook, Image, Search, Filter, AlertCircle, Info } from "lucide-react";
+import { ServiceDetailsModal } from "./ServiceDetailsModal";
 
 interface PublicProfileData {
   profile: {
@@ -36,6 +36,11 @@ interface PublicProfileData {
     price: number | null;
     duration_minutes: number | null;
     image_url: string | null;
+    client_instructions: string | null;
+    preparation_time: number | null;
+    requires_consultation: boolean | null;
+    complexity_level: string | null;
+    cancellation_policy: string | null;
     specialties: { name: string } | null;
   }>;
   portfolioItems: Array<{
@@ -50,10 +55,10 @@ interface PublicProfileData {
 
 export const PublicProfile = () => {
   const { profileId } = useParams<{ profileId: string }>();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showBooking, setShowBooking] = useState(false);
   
   // Service filtering and pagination states
   const [serviceSearchQuery, setServiceSearchQuery] = useState('');
@@ -62,6 +67,8 @@ export const PublicProfile = () => {
   const [currentServicePage, setCurrentServicePage] = useState(1);
   const [priceRange, setPriceRange] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
+  const [selectedService, setSelectedService] = useState<PublicProfileData['services'][0] | null>(null);
+  const [showServiceDetails, setShowServiceDetails] = useState(false);
 
   useEffect(() => {
     if (profileId) {
@@ -96,6 +103,11 @@ export const PublicProfile = () => {
           price,
           duration_minutes,
           image_url,
+          client_instructions,
+          preparation_time,
+          requires_consultation,
+          complexity_level,
+          cancellation_policy,
           specialties(name)
         `)
         .eq('user_id', profileData.id)
@@ -247,58 +259,6 @@ export const PublicProfile = () => {
     currentServicePage * servicesPerPage
   );
 
-  // Show booking interface if user clicked book appointment
-  if (showBooking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          {/* Back to Profile Button */}
-          <Button 
-            variant="outline" 
-            onClick={() => setShowBooking(false)}
-            className="mb-6"
-          >
-            ← Back to Profile
-          </Button>
-          
-          {/* Professional Info Header */}
-          <Card className="bg-white/80 backdrop-blur-sm mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarImage src={profile.avatar_url || undefined} />
-                  <AvatarFallback className="text-xl">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    Book with {profile.business_name || getDisplayName()}
-                  </h2>
-                  {profile.location && (
-                    <p className="text-gray-600 flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {profile.location}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Booking Engine */}
-          <BookingEngine 
-            professionalId={profile.id} 
-            onClose={() => setShowBooking(false)}
-            onBookingComplete={() => {
-              // Could redirect to success page or show confirmation
-              setShowBooking(false);
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen">
@@ -441,7 +401,15 @@ export const PublicProfile = () => {
                 <Button 
                   size="lg"
                   className="bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-                  onClick={() => setShowBooking(true)}
+                  onClick={() => {
+                    // If there's only one service, go directly to booking
+                    if (services.length === 1) {
+                      navigate(`/profile/${profileId}/book/${services[0].id}`);
+                    } else {
+                      // Scroll to services section
+                      document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                 >
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 sm:mr-3" />
                   <span className="hidden sm:inline">Book Your Appointment Now</span>
@@ -458,7 +426,7 @@ export const PublicProfile = () => {
 
         {/* Services Section */}
         {services.length > 0 && (
-          <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 lg:py-16 max-w-7xl">
+          <div id="services-section" className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 lg:py-16 max-w-7xl">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-800 mb-2 sm:mb-4">
                 Services & Pricing
@@ -657,6 +625,20 @@ export const PublicProfile = () => {
                         </span>
                       </div>
                     )}
+
+                    {/* Service Indicators */}
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1">
+                      {service.requires_consultation && (
+                        <div className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                          <AlertCircle className="w-3 h-3" />
+                        </div>
+                      )}
+                      {service.complexity_level === 'advanced' && (
+                        <div className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                          <Star className="w-3 h-3 fill-current" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Card Content */}
@@ -675,10 +657,34 @@ export const PublicProfile = () => {
                         {service.duration_minutes && (
                           <div className="flex items-center gap-1 text-gray-500">
                             <Clock className="w-3 h-3" />
-                            <span className="text-xs">{service.duration_minutes}min</span>
+                            <span className="text-xs">
+                              {service.preparation_time && service.preparation_time > 0 
+                                ? `${service.duration_minutes + service.preparation_time}min (${service.preparation_time}m prep)`
+                                : `${service.duration_minutes}min`
+                              }
+                            </span>
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Service Badges */}
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {service.requires_consultation && (
+                        <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                          Consultation Required
+                        </Badge>
+                      )}
+                      {service.complexity_level === 'advanced' && (
+                        <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
+                          Advanced
+                        </Badge>
+                      )}
+                      {service.client_instructions && (
+                        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                          Prep Required
+                        </Badge>
+                      )}
                     </div>
                     
                     {/* Description */}
@@ -688,13 +694,27 @@ export const PublicProfile = () => {
                       </p>
                     )}
                     
-                    {/* Book Button */}
-                    <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-xs sm:text-sm font-semibold transition-all duration-300"
-                      onClick={() => setShowBooking(true)}
-                    >
-                      Book Now
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        className="text-xs flex items-center gap-1"
+                        onClick={() => {
+                          setSelectedService(service);
+                          setShowServiceDetails(true);
+                        }}
+                      >
+                        <Info className="w-3 h-3" />
+                        Details
+                      </Button>
+                      <Button 
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-xs sm:text-sm font-semibold transition-all duration-300"
+                        onClick={() => navigate(`/profile/${profileId}/book/${service.id}`)}
+                      >
+                        Book Now
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -905,7 +925,15 @@ export const PublicProfile = () => {
                 <Button 
                   size="lg"
                   className="bg-white text-purple-600 hover:bg-gray-50 rounded-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-                  onClick={() => setShowBooking(true)}
+                  onClick={() => {
+                    // If there's only one service, go directly to booking
+                    if (services.length === 1) {
+                      navigate(`/profile/${profileId}/book/${services[0].id}`);
+                    } else {
+                      // Scroll to services section
+                      document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                 >
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 mr-2 sm:mr-3" />
                   Book Appointment
@@ -935,11 +963,34 @@ export const PublicProfile = () => {
         <Button
           size="lg"
           className="bg-purple-600 hover:bg-purple-700 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 animate-bounce"
-          onClick={() => setShowBooking(true)}
+          onClick={() => {
+            // If there's only one service, go directly to booking
+            if (services.length === 1) {
+              navigate(`/profile/${profileId}/book/${services[0].id}`);
+            } else {
+              // Scroll to services section
+              document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
         >
           <Calendar className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" />
         </Button>
       </div>
+
+      {/* Service Details Modal */}
+      <ServiceDetailsModal
+        service={selectedService}
+        isOpen={showServiceDetails}
+        onClose={() => {
+          setShowServiceDetails(false);
+          setSelectedService(null);
+        }}
+        onBookNow={() => {
+          if (selectedService) {
+            navigate(`/profile/${profileId}/book/${selectedService.id}`);
+          }
+        }}
+      />
     </div>
   );
 };
