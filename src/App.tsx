@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import PublicFormPage from "./pages/PublicFormPage";
 import { BookingPage } from "./pages/BookingPage";
+import { DepositPaymentHandler } from "./components/DepositPaymentHandler";
+import { AppointmentsPage } from "./pages/AppointmentsPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -35,12 +37,24 @@ const App = () => (
               } 
             />
             <Route 
+              path="/appointments" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/profile/:profileId" 
               element={<PublicProfilePage />} 
             />
             <Route 
               path="/profile/:profileId/book/:serviceId" 
               element={<BookingPage />} 
+            />
+            <Route 
+              path="/payment/confirmation" 
+              element={<DepositPaymentHandler />} 
             />
             <Route 
               path="/form/:formId" 

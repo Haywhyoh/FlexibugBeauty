@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Clock, User, Phone, Edit, CheckCircle, AlertTriangle, X, Star, Check } from "lucide-react";
+import { CalendarDays, Clock, User, Phone, Edit, CheckCircle, AlertTriangle, X, Star, Check, CreditCard, Info } from "lucide-react";
 import { format, addMinutes, isSameDay } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailNotifications } from "@/hooks/useEmailNotifications";
+import { initializePayment, generatePaymentReference, convertToKobo, formatNaira } from "@/services/paystackService";
 
 interface Service {
   id: string;
@@ -19,6 +21,25 @@ interface Service {
   duration_minutes: number;
   price: number;
   description: string;
+}
+
+interface DepositSettings {
+  require_deposit: boolean;
+  deposit_type: 'percentage' | 'fixed';
+  deposit_percentage: number;
+  deposit_fixed_amount: number;
+  deposit_policy: string;
+}
+
+interface ProfessionalProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  business_name: string;
+  email: string;
+  deposit_settings: DepositSettings;
+  paystack_subaccount_code: string;
 }
 
 interface TimeSlot {
@@ -57,31 +78,51 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
     notes: '',
   });
   const [isBooking, setIsBooking] = useState(false);
+  const [professionalProfile, setProfessionalProfile] = useState<ProfessionalProfile | null>(null);
+  const [depositAmount, setDepositAmount] = useState<number>(0);
+  const [totalSteps, setTotalSteps] = useState(4);
   const { toast } = useToast();
 
   const { sendConfirmationEmail } = useEmailNotifications();
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch services
+        const { data: servicesData, error: servicesError } = await supabase
           .from('services')
           .select('*')
           .eq('user_id', professionalId);
 
-        if (error) throw error;
-        setServices(data || []);
+        if (servicesError) throw servicesError;
+        setServices(servicesData || []);
+
+        // Fetch professional profile with deposit settings
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, full_name, business_name, email, deposit_settings, paystack_subaccount_code')
+          .eq('id', professionalId)
+          .single();
+
+        if (profileError) throw profileError;
+        setProfessionalProfile(profileData);
+
+        // Check if deposit is required - if so, add payment step
+        const depositSettings = profileData?.deposit_settings as DepositSettings;
+        if (depositSettings?.require_deposit) {
+          setTotalSteps(5); // Add payment step
+        }
       } catch (error: any) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching data:', error);
         toast({
           title: "Error",
-          description: "Failed to load services",
+          description: "Failed to load booking data",
           variant: "destructive",
         });
       }
     };
 
-    fetchServices();
+    fetchData();
   }, [professionalId, toast]);
 
   useEffect(() => {
@@ -89,6 +130,31 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
       fetchAvailableSlots(selectedDate, selectedService);
     }
   }, [selectedDate, selectedService, professionalId, toast]);
+
+  useEffect(() => {
+    if (selectedService && professionalProfile?.deposit_settings) {
+      calculateDepositAmount();
+    }
+  }, [selectedService, professionalProfile]);
+
+  const calculateDepositAmount = () => {
+    if (!selectedService || !professionalProfile?.deposit_settings) return;
+    
+    const settings = professionalProfile.deposit_settings;
+    if (!settings.require_deposit) {
+      setDepositAmount(0);
+      return;
+    }
+
+    let amount = 0;
+    if (settings.deposit_type === 'percentage') {
+      amount = (selectedService.price * settings.deposit_percentage) / 100;
+    } else {
+      amount = settings.deposit_fixed_amount;
+    }
+    
+    setDepositAmount(Math.round(amount * 100) / 100); // Round to 2 decimal places
+  };
 
   const fetchAvailableSlots = async (date: Date, service: Service) => {
     try {
@@ -147,6 +213,69 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
     }
   };
 
+  const handlePayment = async () => {
+    if (!selectedService || !professionalProfile || depositAmount <= 0) return;
+
+    try {
+      setIsBooking(true);
+      
+      const reference = generatePaymentReference('FB_DEP');
+      const metadata = {
+        appointment_type: 'deposit',
+        service_id: selectedService.id,
+        professional_id: professionalId,
+        client_name: bookingDetails.name,
+        client_email: bookingDetails.email,
+        appointment_date: selectedDate?.toISOString(),
+        appointment_time: selectedTimeSlot?.start.toISOString(),
+      };
+
+      const paymentData = {
+        amount: convertToKobo(depositAmount),
+        email: bookingDetails.email,
+        reference,
+        callback_url: `${window.location.origin}/payment/confirmation`,
+        metadata,
+        subaccount: professionalProfile.paystack_subaccount_code,
+        bearer: 'subaccount' as const,
+      };
+
+      const response = await initializePayment(paymentData);
+      
+      // Store payment info in session storage for verification
+      sessionStorage.setItem('booking_payment', JSON.stringify({
+        reference,
+        appointment_data: {
+          professional_id: professionalId,
+          service_id: selectedService.id,
+          start_time: selectedTimeSlot?.start.toISOString(),
+          end_time: selectedTimeSlot?.end.toISOString(),
+          client_name: bookingDetails.name,
+          client_email: bookingDetails.email,
+          client_phone: bookingDetails.phone || null,
+          notes: bookingDetails.notes || null,
+          deposit_required: true,
+          deposit_amount: depositAmount,
+          total_amount: selectedService.price,
+          payment_reference: reference,
+        },
+      }));
+
+      // Redirect to Paystack
+      window.location.href = response.authorization_url;
+      
+    } catch (error: any) {
+      console.error('Error initializing payment:', error);
+      toast({
+        title: "Payment Error",
+        description: error.message || "Failed to initialize payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
   const handleBooking = async () => {
     if (!selectedDate || !selectedTimeSlot || !selectedService || !bookingDetails.name || !bookingDetails.email) {
       toast({
@@ -157,21 +286,19 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
       return;
     }
 
+    // If deposit is required, handle payment flow
+    if (professionalProfile?.deposit_settings?.require_deposit && depositAmount > 0) {
+      await handlePayment();
+      return;
+    }
+
+    // Direct booking without deposit
     setIsBooking(true);
 
     try {
-      // Fetch professional profile to get email and name
-      const { data: professionalProfile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, full_name, business_name, email')
-        .eq('id', professionalId)
-        .single();
-
       const professionalName = professionalProfile?.first_name && professionalProfile?.last_name
         ? `${professionalProfile.first_name} ${professionalProfile.last_name}`
         : professionalProfile?.full_name || professionalProfile?.business_name || 'Beauty Professional';
-
-      const professionalEmail = professionalProfile?.email;
 
       // Create the appointment
       const appointmentData = {
@@ -184,6 +311,9 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
         client_phone: bookingDetails.phone || null,
         notes: bookingDetails.notes || null,
         status: 'confirmed',
+        deposit_required: false,
+        payment_status: 'pending',
+        total_amount: selectedService.price,
       };
 
       const { data: appointment, error: appointmentError } = await supabase
@@ -194,9 +324,7 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
 
       if (appointmentError) throw appointmentError;
 
-      console.log('Appointment created successfully:', appointment);
-
-      // Send confirmation email to client
+      // Send confirmation emails
       try {
         await sendConfirmationEmail(
           {
@@ -205,19 +333,18 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
           },
           professionalName
         );
-        console.log('Client confirmation email sent successfully');
       } catch (emailError) {
-        console.error('Error sending client confirmation email:', emailError);
+        console.error('Error sending confirmation email:', emailError);
       }
 
-      // Send notification email to professional if email is available
-      if (professionalEmail) {
+      // Send notification email to professional
+      if (professionalProfile?.email) {
         try {
-          const { error: professionalEmailError } = await supabase.functions.invoke('send-appointment-email', {
+          await supabase.functions.invoke('send-appointment-email', {
             body: {
               type: 'professional_notification',
               appointmentId: appointment.id,
-              recipientEmail: professionalEmail,
+              recipientEmail: professionalProfile.email,
               recipientName: professionalName,
               professionalName: professionalName,
               serviceName: selectedService.name,
@@ -235,18 +362,9 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
               clientPhone: bookingDetails.phone || ''
             }
           });
-
-          if (professionalEmailError) {
-            console.error('Error sending professional notification:', professionalEmailError);
-            // Don't fail the booking for email issues
-          } else {
-            console.log('Professional notification sent successfully');
-          }
         } catch (error) {
           console.error('Error sending professional notification:', error);
         }
-      } else {
-        console.log('No professional email found, skipping notification');
       }
 
       toast({
@@ -348,7 +466,7 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
                   <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
                     isSelected ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'
                   }`}>
-                    <span className="text-lg font-bold">${service.price}</span>
+                    <span className="text-lg font-bold">{formatNaira(service.price)}</span>
                   </div>
                   
                   <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
@@ -357,6 +475,13 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
                     <Clock className="w-4 h-4" />
                     <span>{service.duration_minutes} min</span>
                   </div>
+                  
+                  {/* Deposit Badge */}
+                  {isSelected && professionalProfile?.deposit_settings?.require_deposit && (
+                    <div className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Deposit Required
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -488,6 +613,71 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
     </div>
   );
 
+  const renderPaymentInfo = () => (
+    <div className="space-y-6">
+      {/* Service Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            Payment Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Service:</span>
+            <span className="font-medium">{selectedService?.name}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Total Price:</span>
+            <span className="font-medium">{formatNaira(selectedService?.price || 0)}</span>
+          </div>
+          <div className="flex justify-between items-center border-t pt-4">
+            <span className="font-semibold">Deposit Required:</span>
+            <span className="font-bold text-lg text-purple-600">{formatNaira(depositAmount)}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <span>Remaining Balance:</span>
+            <span>{formatNaira((selectedService?.price || 0) - depositAmount)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Deposit Policy */}
+      {professionalProfile?.deposit_settings?.deposit_policy && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            {professionalProfile.deposit_settings.deposit_policy}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Booking Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Date & Time:</span>
+            <span className="font-medium">
+              {selectedDate && formatDate(selectedDate)} at {selectedTimeSlot?.start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Duration:</span>
+            <span className="font-medium">{selectedService?.duration_minutes} minutes</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">Client:</span>
+            <span className="font-medium">{bookingDetails.name}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const renderConfirmation = () => (
     <div className="grid gap-4">
       <Card>
@@ -495,7 +685,7 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
           <CardTitle>Service</CardTitle>
         </CardHeader>
         <CardContent>
-          {selectedService?.name} - ${selectedService?.price}
+          {selectedService?.name} - {formatNaira(selectedService?.price || 0)}
         </CardContent>
       </Card>
       <Card>
@@ -537,16 +727,17 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
             {currentStep === 1 && "Choose a service to book."}
             {currentStep === 2 && "Select date and time for your appointment."}
             {currentStep === 3 && "Enter your contact information."}
-            {currentStep === 4 && "Confirm your booking details."}
+            {currentStep === 4 && (totalSteps === 5 ? "Review payment details." : "Confirm your booking details.")}
+            {currentStep === 5 && "Confirm your booking details."}
           </p>
           <div className="mt-4 flex items-center justify-between">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-primary h-2 rounded-full"
-                style={{ width: `${(currentStep - 1) * 33.33}%` }}
+                style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
               ></div>
             </div>
-            <div className="text-sm text-gray-500 ml-2">{currentStep}/4</div>
+            <div className="text-sm text-gray-500 ml-2">{currentStep}/{totalSteps}</div>
           </div>
         </div>
 
@@ -572,7 +763,21 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
             </div>
           )}
 
-          {currentStep === 4 && (
+          {currentStep === 4 && totalSteps === 5 && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Required</h2>
+              {renderPaymentInfo()}
+            </div>
+          )}
+
+          {currentStep === 4 && totalSteps === 4 && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Confirm Your Booking</h2>
+              {renderConfirmation()}
+            </div>
+          )}
+
+          {currentStep === 5 && (
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Confirm Your Booking</h2>
               {renderConfirmation()}
@@ -587,18 +792,20 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
             </Button>
           )}
           <div className="flex-1"></div>
-          {currentStep < 4 ? (
+          {currentStep < totalSteps ? (
             <Button onClick={() => setCurrentStep(currentStep + 1)} disabled={
               (currentStep === 1 && !selectedService) ||
               (currentStep === 2 && (!selectedDate || !selectedTimeSlot)) ||
               (currentStep === 3 && (!bookingDetails.name || !bookingDetails.email))
             }>
-              Next <Edit className="ml-2 h-4 w-4" />
+              {currentStep === 4 && totalSteps === 5 ? 'Continue to Payment' : 'Next'} <Edit className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Button onClick={handleBooking} disabled={isBooking}>
               {isBooking ? (
-                <>Booking... <svg className="animate-spin h-5 w-5 ml-2" viewBox="0 0 24 24"></svg></>
+                <>Processing... <svg className="animate-spin h-5 w-5 ml-2" viewBox="0 0 24 24"></svg></>
+              ) : totalSteps === 5 && depositAmount > 0 ? (
+                <>Pay Deposit {formatNaira(depositAmount)} <CreditCard className="ml-2 h-4 w-4" /></>
               ) : (
                 <>Confirm & Book <CheckCircle className="ml-2 h-4 w-4" /></>
               )}

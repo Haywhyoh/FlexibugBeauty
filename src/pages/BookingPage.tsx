@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ServiceRequirements } from "@/components/ServiceRequirements";
 import { BookingEngine } from "@/components/BookingEngine";
 import { 
@@ -18,9 +19,19 @@ import {
   User,
   Settings,
   CheckCircle2,
-  Info
+  Info,
+  CreditCard
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatNaira } from "@/services/paystackService";
+
+interface DepositSettings {
+  require_deposit: boolean;
+  deposit_type: 'percentage' | 'fixed';
+  deposit_percentage: number;
+  deposit_fixed_amount: number;
+  deposit_policy: string;
+}
 
 interface BookingPageData {
   professional: {
@@ -33,6 +44,7 @@ interface BookingPageData {
     avatar_url: string | null;
     location: string | null;
     phone: string | null;
+    deposit_settings: DepositSettings;
   };
   service: {
     id: string;
@@ -59,6 +71,7 @@ export const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState<'review' | 'requirements' | 'booking'>('review');
   const [requirementsAcknowledged, setRequirementsAcknowledged] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<number>(0);
 
   useEffect(() => {
     if (profileId && serviceId) {
@@ -73,10 +86,10 @@ export const BookingPage = () => {
       // Check if profileId is a UUID or a business slug
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId!);
       
-      // Fetch professional profile
+      // Fetch professional profile with deposit settings
       const { data: professionalData, error: professionalError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, full_name, business_name, business_slug, avatar_url, location, phone')
+        .select('id, first_name, last_name, full_name, business_name, business_slug, avatar_url, location, phone, deposit_settings')
         .eq(isUUID ? 'id' : 'business_slug', profileId)
         .eq('is_profile_public', true)
         .single();
@@ -111,6 +124,11 @@ export const BookingPage = () => {
         professional: professionalData,
         service: serviceData,
       });
+
+      // Calculate deposit amount if required
+      if (professionalData.deposit_settings?.require_deposit && serviceData.price) {
+        calculateDepositAmount(professionalData.deposit_settings, serviceData.price);
+      }
     } catch (error) {
       console.error('Error fetching booking data:', error);
       toast({
@@ -207,6 +225,22 @@ export const BookingPage = () => {
 
   const complexityInfo = getComplexityInfo(service.complexity_level);
 
+  const calculateDepositAmount = (settings: DepositSettings, servicePrice: number) => {
+    if (!settings.require_deposit) {
+      setDepositAmount(0);
+      return;
+    }
+
+    let amount = 0;
+    if (settings.deposit_type === 'percentage') {
+      amount = (servicePrice * settings.deposit_percentage) / 100;
+    } else {
+      amount = settings.deposit_fixed_amount;
+    }
+    
+    setDepositAmount(Math.round(amount * 100) / 100); // Round to 2 decimal places
+  };
+
   const renderProgressSteps = () => {
     const steps = [
       { key: 'review', label: 'Service Review', shortLabel: 'Review', icon: Info },
@@ -276,10 +310,17 @@ export const BookingPage = () => {
             <div className="flex items-center justify-center gap-1 sm:gap-2 text-purple-600 mb-1 sm:mb-2">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="font-bold text-lg sm:text-xl">
-                {service.price ? `₦${service.price.toLocaleString()}` : 'Price varies'}
+                {service.price ? formatNaira(service.price) : 'Price varies'}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Service Price</p>
+            {bookingData?.professional.deposit_settings?.require_deposit && service.price && (
+              <div className="mt-2">
+                <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                  {formatNaira(depositAmount)} deposit required
+                </Badge>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -313,6 +354,27 @@ export const BookingPage = () => {
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{service.description}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Deposit Information */}
+      {bookingData?.professional.deposit_settings?.require_deposit && service.price && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <h4 className="font-semibold text-green-800 mb-2 text-sm sm:text-base">Deposit Required</h4>
+                <div className="space-y-2 text-xs sm:text-sm text-green-700">
+                  <p><span className="font-medium">Deposit Amount:</span> {formatNaira(depositAmount)}</p>
+                  <p><span className="font-medium">Remaining Balance:</span> {formatNaira(service.price - depositAmount)}</p>
+                  <p className="text-green-600 leading-relaxed">
+                    {bookingData.professional.deposit_settings.deposit_policy}
+                  </p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -519,7 +581,6 @@ export const BookingPage = () => {
         {currentStep === 'booking' && (
           <BookingEngine 
             professionalId={professional.id}
-            serviceId={service.id}
             onClose={() => setCurrentStep('requirements')}
             onBookingComplete={() => {
               toast({
