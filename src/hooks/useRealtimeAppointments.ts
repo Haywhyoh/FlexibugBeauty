@@ -55,7 +55,7 @@ export const useRealtimeAppointments = (initialAppointments: Appointment[], prof
               .select(`
                 *,
                 service:services(name, duration_minutes, price),
-                client_profile:profiles!appointments_client_id_fkey(full_name, avatar_url)
+                client_profile:profiles!client_id(full_name, avatar_url)
               `)
               .eq('id', payload.new.id)
               .single();

@@ -14,6 +14,8 @@ import SettingsView from "@/components/SettingsView";
 import { Sidebar } from "@/components/Sidebar";
 import MobileNavigation from "@/components/MobileNavigation";
 import { ClientDashboard } from "@/components/ClientDashboard";
+import { AppointmentsPage } from "@/pages/AppointmentsPage";
+import { PaymentHistory } from "@/components/PaymentHistory";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState("dashboard");
@@ -48,6 +50,10 @@ const Index = () => {
         return <PortfolioManager />;
       case "services":
         return <ServicesManager />;
+      case "appointments":
+        return <AppointmentsPage />;
+      case "payments":
+        return <PaymentHistory userId={user?.id} showTitle={true} className="p-6" />;
       case "availability":
         return <AvailabilityManager />;
       case "profile":
@@ -58,6 +64,8 @@ const Index = () => {
       case "branding-settings":
       case "business-settings":
       case "payment-settings":
+      case "deposit-settings":
+      case "payment-analytics":
       case "notification-settings":
         return <SettingsView currentView={currentView} onViewChange={setCurrentView} />;
       default:

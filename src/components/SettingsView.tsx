@@ -5,6 +5,8 @@ import BrandingSettings from './settings/BrandingSettings';
 import BusinessSettings from './settings/BusinessSettings';
 import PaymentSettings from './settings/PaymentSettings';
 import NotificationSettings from './settings/NotificationSettings';
+import { DepositSettingsManager } from './DepositSettingsManager';
+import { PaymentAnalytics } from './PaymentAnalytics';
 
 interface SettingsViewProps {
   currentView: string;
@@ -20,6 +22,10 @@ const SettingsView = ({ currentView, onViewChange }: SettingsViewProps) => {
         return <BusinessSettings />;
       case 'payment-settings':
         return <PaymentSettings />;
+      case 'deposit-settings':
+        return <DepositSettingsManager />;
+      case 'payment-analytics':
+        return <PaymentAnalytics />;
       case 'notification-settings':
         return <NotificationSettings />;
       case 'email-settings':

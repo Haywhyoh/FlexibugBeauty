@@ -111,7 +111,7 @@ export const BookingPage = () => {
           requires_consultation,
           complexity_level,
           cancellation_policy,
-          specialties(name)
+          specialties!specialty_id(name)
         `)
         .eq('id', serviceId)
         .eq('user_id', professionalData.id)
@@ -126,7 +126,9 @@ export const BookingPage = () => {
       });
 
       // Calculate deposit amount if required
-      if (professionalData.deposit_settings?.require_deposit && serviceData.price) {
+      if (professionalData.
+        
+        deposit_settings?.require_deposit && serviceData.price) {
         calculateDepositAmount(professionalData.deposit_settings, serviceData.price);
       }
     } catch (error) {

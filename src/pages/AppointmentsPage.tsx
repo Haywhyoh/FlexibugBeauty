@@ -112,10 +112,10 @@ export const AppointmentsPage = () => {
           total_amount,
           payment_reference,
           service:services(id, name, price, duration_minutes),
-          professional:profiles!appointments_professional_id_fkey(id, first_name, last_name, business_name, avatar_url),
-          user:profiles!appointments_user_id_fkey(id, first_name, last_name, full_name, avatar_url)
+          professional:profiles!professional_id(id, first_name, last_name, business_name, avatar_url),
+          client:profiles!client_id(id, first_name, last_name, full_name, avatar_url)
         `)
-        .or(`user_id.eq.${user.id},professional_id.eq.${user.id}`)
+        .or(`client_id.eq.${user.id},professional_id.eq.${user.id}`)
         .order('start_time', { ascending: false });
 
       if (error) throw error;

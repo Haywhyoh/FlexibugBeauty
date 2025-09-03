@@ -51,7 +51,7 @@ export const useAppointments = (date?: Date) => {
         .select(`
           *,
           service:services(name, duration_minutes, price),
-          client_profile:profiles!appointments_client_id_fkey(full_name, avatar_url)
+          client_profile:profiles!client_id(full_name, avatar_url)
         `)
         .eq('professional_id', user?.id)
         .order('start_time');

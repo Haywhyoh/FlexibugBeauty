@@ -1,11 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { formatNaira } from "@/services/paystackService";
 import { 
   Calendar, 
   Users, 
@@ -15,46 +17,164 @@ import {
   DollarSign,
   Star,
   Activity,
-  ExternalLink
+  ExternalLink,
+  CreditCard,
+  CalendarCheck,
+  AlertCircle
 } from "lucide-react";
 
 interface DashboardProps {
   onViewChange: (view: string) => void;
 }
 
+interface DashboardStats {
+  todaysAppointments: number;
+  weeklyRevenue: number;
+  monthlyRevenue: number;
+  pendingPayments: number;
+  totalClients: number;
+  depositsPaid: number;
+  upcomingAppointments: number;
+}
+
 export const Dashboard = ({ onViewChange }: DashboardProps) => {
   const { user } = useAuth();
   const { profile, loading, getDisplayName, getUserInitials } = useUserProfile();
+  const [stats, setStats] = useState<DashboardStats>({
+    todaysAppointments: 0,
+    weeklyRevenue: 0,
+    monthlyRevenue: 0,
+    pendingPayments: 0,
+    totalClients: 0,
+    depositsPaid: 0,
+    upcomingAppointments: 0,
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
-  // Quick stats for dashboard home
+  useEffect(() => {
+    if (user) {
+      fetchDashboardStats();
+    }
+  }, [user]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      // Today's appointments
+      const { data: todaysAppointments } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('professional_id', user.id)
+        .gte('start_time', today.toISOString().split('T')[0])
+        .lt('start_time', new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+
+      // Upcoming appointments (next 7 days)
+      const { data: upcomingAppointments } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('professional_id', user.id)
+        .eq('status', 'confirmed')
+        .gte('start_time', today.toISOString())
+        .lte('start_time', new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      // Weekly revenue from successful transactions
+      const { data: weeklyTransactions } = await supabase
+        .from('payment_transactions')
+        .select('amount')
+        .eq('professional_id', user.id)
+        .eq('status', 'success')
+        .gte('created_at', startOfWeek.toISOString());
+
+      // Monthly revenue
+      const { data: monthlyTransactions } = await supabase
+        .from('payment_transactions')
+        .select('amount')
+        .eq('professional_id', user.id)
+        .eq('status', 'success')
+        .gte('created_at', startOfMonth.toISOString());
+
+      // Pending payments (appointments with unpaid deposits)
+      const { data: pendingPayments } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('professional_id', user.id)
+        .eq('deposit_required', true)
+        .eq('deposit_paid', false)
+        .neq('status', 'cancelled');
+
+      // Total unique clients
+      const { data: clientEmails } = await supabase
+        .from('appointments')
+        .select('client_email')
+        .eq('professional_id', user.id);
+
+      // Deposits paid this month
+      const { data: depositTransactions } = await supabase
+        .from('payment_transactions')
+        .select('id')
+        .eq('professional_id', user.id)
+        .eq('status', 'success')
+        .eq('transaction_type', 'deposit')
+        .gte('created_at', startOfMonth.toISOString());
+
+      const uniqueClients = clientEmails ? new Set(clientEmails.map(c => c.client_email)).size : 0;
+      const weeklyRevenue = weeklyTransactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+      const monthlyRevenue = monthlyTransactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+
+      setStats({
+        todaysAppointments: todaysAppointments?.length || 0,
+        weeklyRevenue,
+        monthlyRevenue,
+        pendingPayments: pendingPayments?.length || 0,
+        totalClients: uniqueClients,
+        depositsPaid: depositTransactions?.length || 0,
+        upcomingAppointments: upcomingAppointments?.length || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  // Dynamic quick stats based on real data
   const quickStats = [
     {
       title: "Today's Appointments",
-      value: "8",
+      value: isLoadingStats ? "..." : stats.todaysAppointments.toString(),
       icon: Calendar,
       color: "text-purple-600",
-      bgColor: "bg-purple-100"
+      bgColor: "bg-purple-100",
+      onClick: () => onViewChange("appointments")
     },
     {
-      title: "New Messages",
-      value: "3",
-      icon: MessageSquare,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100"
-    },
-    {
-      title: "New Leads",
-      value: "5",
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-100"
-    },
-    {
-      title: "This Week Revenue",
-      value: "$2,450",
+      title: "Monthly Revenue",
+      value: isLoadingStats ? "..." : formatNaira(stats.monthlyRevenue),
       icon: DollarSign,
       color: "text-emerald-600",
-      bgColor: "bg-emerald-100"
+      bgColor: "bg-emerald-100",
+      onClick: () => onViewChange("payments")
+    },
+    {
+      title: "Pending Payments",
+      value: isLoadingStats ? "..." : stats.pendingPayments.toString(),
+      icon: AlertCircle,
+      color: "text-red-600",
+      bgColor: "bg-red-100",
+      onClick: () => onViewChange("appointments")
+    },
+    {
+      title: "Total Clients",
+      value: isLoadingStats ? "..." : stats.totalClients.toString(),
+      icon: Users,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+      onClick: () => onViewChange("clients")
     }
   ];
 
@@ -160,7 +280,7 @@ export const Dashboard = ({ onViewChange }: DashboardProps) => {
         {/* Quick Stats - Mobile First Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {quickStats.map((stat, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
+            <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={stat.onClick}>
               <CardContent className="p-3 sm:p-4 lg:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex-1">
@@ -178,6 +298,71 @@ export const Dashboard = ({ onViewChange }: DashboardProps) => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Payment Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <Card>
+            <CardHeader className="pb-3 px-4 sm:px-6">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Payment Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Weekly Revenue</span>
+                <span className="font-semibold">{formatNaira(stats.weeklyRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Monthly Revenue</span>
+                <span className="font-semibold">{formatNaira(stats.monthlyRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Deposits This Month</span>
+                <span className="font-semibold">{stats.depositsPaid}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-4"
+                onClick={() => onViewChange("payments")}
+              >
+                View Full Payment History
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3 px-4 sm:px-6">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <CalendarCheck className="w-5 h-5" />
+                Upcoming Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Next 7 Days</span>
+                <span className="font-semibold">{stats.upcomingAppointments} appointments</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Pending Payments</span>
+                <span className={`font-semibold ${
+                  stats.pendingPayments > 0 ? 'text-red-600' : 'text-green-600'
+                }`}>
+                  {stats.pendingPayments}
+                </span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-4"
+                onClick={() => onViewChange("appointments")}
+              >
+                Manage Appointments
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions - Mobile First */}
@@ -198,26 +383,26 @@ export const Dashboard = ({ onViewChange }: DashboardProps) => {
               <Button 
                 variant="outline" 
                 className="h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 p-2 sm:p-4"
-                onClick={() => onViewChange("messages")}
+                onClick={() => onViewChange("appointments")}
               >
-                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <span className="text-xs sm:text-sm font-medium">Check Messages</span>
+                <CalendarCheck className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <span className="text-xs sm:text-sm font-medium">Appointments</span>
               </Button>
               <Button 
                 variant="outline" 
                 className="h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 p-2 sm:p-4"
-                onClick={() => onViewChange("leads")}
+                onClick={() => onViewChange("payments")}
               >
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <span className="text-xs sm:text-sm font-medium">Manage Leads</span>
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <span className="text-xs sm:text-sm font-medium">Payment History</span>
               </Button>
               <Button 
                 variant="outline" 
                 className="h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 p-2 sm:p-4"
-                onClick={() => onViewChange("clients")}
+                onClick={() => onViewChange("payment-settings")}
               >
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <span className="text-xs sm:text-sm font-medium">View Clients</span>
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <span className="text-xs sm:text-sm font-medium">Payment Settings</span>
               </Button>
             </div>
           </CardContent>

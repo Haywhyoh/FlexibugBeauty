@@ -47,6 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_service_requirements_type ON service_requirements
 ALTER TABLE service_requirements ENABLE ROW LEVEL SECURITY;
 
 -- Service requirements policies
+DROP POLICY IF EXISTS "Users can view service requirements for active services" ON service_requirements;
 CREATE POLICY "Users can view service requirements for active services"
     ON service_requirements FOR SELECT
     USING (
@@ -57,6 +58,7 @@ CREATE POLICY "Users can view service requirements for active services"
         )
     );
 
+DROP POLICY IF EXISTS "Service owners can manage their service requirements" ON service_requirements;
 CREATE POLICY "Service owners can manage their service requirements"
     ON service_requirements FOR ALL
     USING (

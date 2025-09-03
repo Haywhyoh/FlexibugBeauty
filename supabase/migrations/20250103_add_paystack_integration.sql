@@ -94,19 +94,23 @@ COMMENT ON COLUMN appointments.payment_reference IS 'Primary payment reference f
 ALTER TABLE payment_transactions ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for payment_transactions
+DROP POLICY IF EXISTS "Users can view their own transactions" ON payment_transactions;
 CREATE POLICY "Users can view their own transactions"
     ON payment_transactions FOR SELECT
     USING (user_id = auth.uid() OR professional_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert their own transactions" ON payment_transactions;
 CREATE POLICY "Users can insert their own transactions"
     ON payment_transactions FOR INSERT
     WITH CHECK (user_id = auth.uid() OR professional_id = auth.uid());
 
+DROP POLICY IF EXISTS "System can update transaction status" ON payment_transactions;
 CREATE POLICY "System can update transaction status"
     ON payment_transactions FOR UPDATE
     USING (true); -- This will be handled by backend/webhook functions
 
 -- Add updated_at trigger for payment_transactions
+DROP TRIGGER IF EXISTS update_payment_transactions_updated_at ON payment_transactions;
 CREATE TRIGGER update_payment_transactions_updated_at 
     BEFORE UPDATE ON payment_transactions 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -171,7 +175,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE VIEW appointment_payment_summary AS
 SELECT 
     a.id as appointment_id,
-    a.user_id,
+    a.client_id as user_id,
     a.professional_id,
     a.service_id,
     a.total_amount,
@@ -189,7 +193,7 @@ SELECT
 FROM appointments a
 LEFT JOIN services s ON a.service_id = s.id
 LEFT JOIN payment_transactions pt ON a.id = pt.appointment_id
-GROUP BY a.id, a.user_id, a.professional_id, a.service_id, a.total_amount, 
+GROUP BY a.id, a.client_id, a.professional_id, a.service_id, a.total_amount, 
          a.deposit_required, a.deposit_amount, a.deposit_paid, a.payment_status, 
          a.deposit_paid_at, s.name, s.price;
 
@@ -197,8 +201,3 @@ COMMENT ON VIEW appointment_payment_summary IS 'Summary view of appointment paym
 
 -- Grant permissions on the view
 GRANT SELECT ON appointment_payment_summary TO authenticated;
-
--- Create RLS policy for the view
-CREATE POLICY "Users can view their appointment payment summaries"
-    ON appointment_payment_summary FOR SELECT
-    USING (user_id = auth.uid() OR professional_id = auth.uid());

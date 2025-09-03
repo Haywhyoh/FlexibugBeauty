@@ -108,7 +108,7 @@ export const PublicProfile = () => {
           requires_consultation,
           complexity_level,
           cancellation_policy,
-          specialties(name)
+          specialties!specialty_id(name)
         `)
         .eq('user_id', profileData.id)
         .eq('is_active', true);
@@ -124,7 +124,7 @@ export const PublicProfile = () => {
           description,
           image_url,
           is_featured,
-          specialties(name)
+          specialties!specialty_id(name)
         `)
         .eq('user_id', profileData.id)
         .order('is_featured', { ascending: false })

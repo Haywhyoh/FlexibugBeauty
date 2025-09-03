@@ -19,7 +19,7 @@ interface NavigationItemsProps {
 }
 
 export const NavigationItems = ({ items, activeView, onViewChange, onMobileClose }: NavigationItemsProps) => {
-  const [expandedItems, setExpandedItems] = useState<string[]>(['settings']); // Settings expanded by default
+  const [expandedItems, setExpandedItems] = useState<string[]>(['settings', 'payments']); // Settings and Payments expanded by default
 
   const handleItemClick = (itemId: string, hasSubmenu: boolean = false) => {
     if (hasSubmenu) {
