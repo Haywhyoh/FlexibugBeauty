@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for building)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -34,30 +34,33 @@ RUN npm run build
 # Production stage with Nginx
 FROM nginx:alpine AS production
 
-# Install Node.js for any server-side needs
-RUN apk add --no-cache nodejs npm
-
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
 # Copy built application from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy additional static files
 COPY --from=builder /app/public /usr/share/nginx/html
 
-# Create nginx user and set permissions
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 && \
-    chown -R nextjs:nodejs /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# Create a simple nginx configuration for SPA
+RUN echo 'server { \
+    listen 80; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /health { \
+        return 200 "healthy\n"; \
+        add_header Content-Type text/plain; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
 # Expose ports
 EXPOSE 80 443
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -f http://localhost/health || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
