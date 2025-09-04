@@ -64,6 +64,8 @@ docker run -d \
     -e NODE_ENV=production \
     -e VITE_SUPABASE_URL="${VITE_SUPABASE_URL}" \
     -e VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY}" \
+    -e PAYSTACK_SECRET_KEY="${PAYSTACK_SECRET_KEY}" \
+    -e PAYSTACK_PUBLIC_KEY="${PAYSTACK_PUBLIC_KEY}" \
     $IMAGE_NAME:latest
 
 # Wait for container to start
