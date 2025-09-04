@@ -18,7 +18,7 @@ CONTAINER_NAME="flexibug-beauty"
 IMAGE_NAME="${DOCKER_USERNAME:-flexibug}/$APP_NAME"
 DOMAIN_NAME="${DOMAIN_NAME:-localhost}"
 
-echo -e "${BLUE}🐳 Deploying FlexiBug Beauty with Docker...${NC}"
+echo -e "${BLUE}�� Deploying FlexiBug Beauty with Docker...${NC}"
 
 # Function to print status
 print_status() {
@@ -54,14 +54,16 @@ fi
 print_status "Cleaning up old Docker images..."
 docker image prune -f
 
-# Run new container
+# Run new container with CORRECTED ports
 print_status "Starting new container..."
 docker run -d \
     --name $CONTAINER_NAME \
     --restart unless-stopped \
-    -p 80:80 \
-    -p 443:443 \
+    -p 8080:80 \
+    -p 8443:443 \
     -e NODE_ENV=production \
+    -e VITE_SUPABASE_URL="${VITE_SUPABASE_URL}" \
+    -e VITE_SUPABASE_ANON_KEY="${VITE_SUPABASE_ANON_KEY}" \
     $IMAGE_NAME:latest
 
 # Wait for container to start
@@ -79,12 +81,13 @@ if docker ps --format 'table {{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
     echo -e "${BLUE}📋 Recent Logs:${NC}"
     docker logs --tail 20 $CONTAINER_NAME
     
-    # Health check
+    # Health check with CORRECTED port
     echo -e "${BLUE}🏥 Performing health check...${NC}"
     sleep 5
     
-    if curl -f http://localhost/health > /dev/null 2>&1; then
+    if curl -f http://localhost:8080/health > /dev/null 2>&1; then
         print_status "Health check passed!"
+        echo -e "${GREEN}🌐 Application is available at: http://$DOMAIN_NAME:8080${NC}"
     else
         print_warning "Health check failed. Check container logs:"
         docker logs $CONTAINER_NAME
@@ -98,9 +101,12 @@ fi
 
 print_status "Docker deployment completed successfully!"
 
-echo -e "${BLUE}📋 Useful commands:${NC}"
+echo -e "${BLUE}�� Useful commands:${NC}"
 echo "View logs: docker logs -f $CONTAINER_NAME"
 echo "Stop container: docker stop $CONTAINER_NAME"
 echo "Restart container: docker restart $CONTAINER_NAME"
 echo "Remove container: docker rm -f $CONTAINER_NAME"
 echo "Update image: docker pull $IMAGE_NAME:latest && $0"
+echo ""
+echo -e "${BLUE}🌐 Access your application:${NC}"
+echo "http://$DOMAIN_NAME:8080"
