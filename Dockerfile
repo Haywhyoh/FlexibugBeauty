@@ -43,7 +43,7 @@ COPY --from=builder /app/public /usr/share/nginx/html
 # Create a simple nginx configuration for SPA
 RUN echo 'server { \
     listen 80; \
-    server_name _; \
+    server_name botglam.codemygig.com; \
     root /usr/share/nginx/html; \
     index index.html; \
     location / { \
