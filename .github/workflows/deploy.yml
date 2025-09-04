@@ -64,18 +64,18 @@ jobs:
       run: |
         echo "Testing connection to server..."
         echo "SERVER_HOST: ${{ secrets.SERVER_HOST }}"
-        echo "SERVER_USER: ${{ secrets.SERVER_USER }}"
-        sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "echo 'Connection successful!'"
+        echo "SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}"
+        sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "echo 'Connection successful!'"
 
     - name: Deploy and build Docker image on server
       env:
         SSHPASS: ${{ secrets.SERVER_PASSWORD }}
       run: |
         # Upload source code to server using sshpass
-        sshpass -e rsync -avz --delete . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/flexibug-beauty/
+        sshpass -e rsync -avz --delete . ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/tmp/flexibug-beauty/
         
         # Build and run Docker image on server using sshpass
-        sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+        sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
           cd /tmp/flexibug-beauty
           
           # Stop and remove existing container
@@ -123,7 +123,7 @@ jobs:
       env:
         SSHPASS: ${{ secrets.SERVER_PASSWORD }}
       run: |
-        sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+        sshpass -e ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
           echo '📊 Container Status:'
           docker ps --filter 'name=flexibug-beauty' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
           echo ''
