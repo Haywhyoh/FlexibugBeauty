@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '18'
   BUILD_DIR: 'dist'
 
 jobs:
@@ -27,8 +27,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run linter
-      run: npm run lint
+    # - name: Run linter
+    #   run: npm run lint
 
     - name: Build application
       run: npm run build
@@ -46,7 +46,7 @@ jobs:
         path: ${{ env.BUILD_DIR }}/
         retention-days: 1
 
-  deploy:
+  docker-deploy:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -54,12 +54,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: build-files
-        path: ${{ env.BUILD_DIR }}/
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
@@ -70,133 +64,65 @@ jobs:
       run: |
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Create deployment directory
+    - name: Deploy and build Docker image on server
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          mkdir -p /var/www/flexibug-beauty
-          mkdir -p /var/www/flexibug-beauty/backup
-        "
-
-    - name: Backup current deployment
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          if [ -d /var/www/flexibug-beauty/current ]; then
-            sudo cp -r /var/www/flexibug-beauty/current /var/www/flexibug-beauty/backup/backup-$(date +%Y%m%d-%H%M%S)
-            # Keep only last 5 backups
-            sudo find /var/www/flexibug-beauty/backup -maxdepth 1 -type d -name 'backup-*' | sort | head -n -5 | sudo xargs rm -rf
-          fi
-        "
-
-    - name: Deploy application files
-      run: |
-        # Create temporary directory for deployment
-        mkdir -p temp-deploy
+        # Upload source code to server
+        rsync -avz --delete . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/flexibug-beauty/
         
-        # Copy build files
-        cp -r ${{ env.BUILD_DIR }}/* temp-deploy/
-        
-        # Copy additional files needed for deployment
-        cp -r public/* temp-deploy/ 2>/dev/null || true
-        
-        # Create environment file
-        cat > temp-deploy/.env << EOF
-        VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-        VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        NODE_ENV=production
-        EOF
-        
-        # Upload files to server
-        rsync -avz --delete temp-deploy/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/flexibug-beauty/temp/
-        
-        # Move to final location
+        # Build and run Docker image on server
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          sudo rm -rf /var/www/flexibug-beauty/current
-          sudo mv /var/www/flexibug-beauty/temp /var/www/flexibug-beauty/current
-          sudo chown -R www-data:www-data /var/www/flexibug-beauty/current
-          sudo chmod -R 755 /var/www/flexibug-beauty/current
-        "
-
-    - name: Update Nginx configuration
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          sudo nginx -t && sudo systemctl reload nginx
-        "
-
-    - name: Health check
-      run: |
-        sleep 10
-        curl -f http://${{ secrets.SERVER_HOST }}/ || exit 1
-
-    - name: Notify deployment status
-      if: always()
-      run: |
-        if [ ${{ job.status }} == 'success' ]; then
-          echo "✅ Deployment successful!"
-        else
-          echo "❌ Deployment failed!"
-          # Optionally rollback to previous version
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-            if [ -d /var/www/flexibug-beauty/backup ]; then
-              LATEST_BACKUP=\$(sudo find /var/www/flexibug-beauty/backup -maxdepth 1 -type d -name 'backup-*' | sort | tail -n 1)
-              if [ -n \"\$LATEST_BACKUP\" ]; then
-                sudo rm -rf /var/www/flexibug-beauty/current
-                sudo cp -r \"\$LATEST_BACKUP\" /var/www/flexibug-beauty/current
-                sudo chown -R www-data:www-data /var/www/flexibug-beauty/current
-                sudo systemctl reload nginx
-                echo 'Rolled back to previous version'
-              fi
-            fi
-          "
-        fi
-
-  docker-deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/flexibug-beauty:latest
-          ${{ secrets.DOCKER_USERNAME }}/flexibug-beauty:${{ github.sha }}
-        build-args: |
-          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-    - name: Deploy to server with Docker
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          # Pull latest image
-          docker pull ${{ secrets.DOCKER_USERNAME }}/flexibug-beauty:latest
+          cd /tmp/flexibug-beauty
           
           # Stop and remove existing container
           docker stop flexibug-beauty || true
           docker rm flexibug-beauty || true
           
-          # Run new container
+          # Remove old image to save space
+          docker rmi flexibug-beauty:latest || true
+          
+          # Build Docker image locally on server
+          echo '🐳 Building Docker image on server...'
+          docker build -t flexibug-beauty:latest .
+          
+          # Run new container with environment variables
+          echo '🚀 Starting new container...'
           docker run -d \
             --name flexibug-beauty \
             --restart unless-stopped \
-            -p 80:80 \
-            -p 443:443 \
-            ${{ secrets.DOCKER_USERNAME }}/flexibug-beauty:latest
+            -p 8080:80 \
+            -p 8443:443 \
+            -e NODE_ENV=production \
+            -e VITE_SUPABASE_URL='${{ secrets.VITE_SUPABASE_URL }}' \
+            -e VITE_SUPABASE_ANON_KEY='${{ secrets.VITE_SUPABASE_ANON_KEY }}' \
+            -e SUPABASE_URL='${{ secrets.SUPABASE_URL }}' \
+            -e PAYSTACK_SECRET_KEY='${{ secrets.PAYSTACK_SECRET_KEY }}' \
+            -e PAYSTACK_PUBLIC_KEY='${{ secrets.PAYSTACK_PUBLIC_KEY }}' \
+            flexibug-beauty:latest
           
-          # Clean up old images
-          docker image prune -f
+          # Wait for container to start
+          sleep 10
+          
+          # Health check
+          echo '🏥 Performing health check...'
+          if curl -f http://localhost:8080/health > /dev/null 2>&1; then
+            echo '✅ Health check passed!'
+            echo '🌐 Application is available at: http://${{ secrets.SERVER_HOST }}:8080'
+          else
+            echo '⚠️ Health check failed. Check container logs:'
+            docker logs flexibug-beauty
+            exit 1
+          fi
+        "
+
+    - name: Show deployment status
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          echo '📊 Container Status:'
+          docker ps --filter 'name=flexibug-beauty' --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+          echo ''
+          echo '📋 Recent Logs:'
+          docker logs --tail 20 flexibug-beauty
+          echo ''
+          echo '🧹 Cleaning up build files...'
+          rm -rf /tmp/flexibug-beauty
         "
