@@ -203,15 +203,15 @@ export const PortfolioCreationModal = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-300">
-      <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-300">
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-2xl lg:max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col animate-in zoom-in-95 duration-300">
             
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Create Portfolio Item</h2>
-                <p className="text-gray-600 mt-1">Add images and details to showcase your work</p>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Create Portfolio Item</h2>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">Add images and details to showcase your work</p>
               </div>
               <Button
                 variant="ghost"
@@ -223,10 +223,10 @@ export const PortfolioCreationModal = ({
               </Button>
             </div>
 
-            <div className="flex flex-col lg:flex-row flex-1 min-h-0">
+            <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
               
               {/* Left Panel - Form */}
-              <div className="lg:w-1/3 p-6 border-r border-gray-200 overflow-y-auto">
+              <div className="lg:w-1/3 p-3 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto flex-shrink-0">
                 <div className="space-y-6">
                   
                   {/* Title */}
@@ -316,13 +316,13 @@ export const PortfolioCreationModal = ({
               </div>
 
               {/* Right Panel - Images */}
-              <div className="lg:w-2/3 flex flex-col min-h-0">
+              <div className="lg:w-2/3 flex flex-col min-h-0 overflow-hidden">
                 
-                {/* Upload Area */}
-                <div className="p-6 border-b border-gray-200">
+                {/* Upload Area - Compact */}
+                <div className="p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
                   <div
                     {...getRootProps()}
-                    className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-200 ${
                       isDragActive 
                         ? "border-purple-400 bg-purple-50" 
                         : errors.images
@@ -331,27 +331,25 @@ export const PortfolioCreationModal = ({
                     }`}
                   >
                     <input {...getInputProps()} />
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                        {isDragActive ? (
-                          <Upload className="w-6 h-6 text-purple-600" />
-                        ) : (
-                          <Plus className="w-6 h-6 text-purple-600" />
-                        )}
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          {isDragActive ? (
+                            <Upload className="w-4 h-4 text-purple-600" />
+                          ) : (
+                            <Plus className="w-4 h-4 text-purple-600" />
+                          )}
+                        </div>
+                        
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-gray-700">
+                            {isDragActive ? "Drop images here" : "Add Images"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Drag & drop or click to browse
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div>
-                        <p className="text-lg font-medium text-gray-700">
-                          {isDragActive ? "Drop images here" : "Add Images"}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Drag and drop or click to select multiple images
-                        </p>
-                      </div>
-                      
-                      <Badge variant="secondary" className="text-xs">
-                        JPG, PNG, GIF, WEBP supported
-                      </Badge>
                       
                       <Button
                         type="button"
@@ -359,17 +357,16 @@ export const PortfolioCreationModal = ({
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Try dropzone first, fallback to manual input
                           try {
                             open();
                           } catch (error) {
                             openFileExplorer();
                           }
                         }}
-                        className="mt-2"
+                        className="flex-shrink-0"
                       >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Browse Files
+                        <Upload className="w-4 h-4 mr-1" />
+                        Browse
                       </Button>
                     </div>
                   </div>
@@ -382,26 +379,25 @@ export const PortfolioCreationModal = ({
                   )}
                 </div>
 
-                {/* Image Preview Grid */}
-                <div className="flex-1 p-6 overflow-y-auto">
+                {/* Image Preview Grid - Compact */}
+                <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
                   {selectedImages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                      <ImageIcon className="w-16 h-16 mb-4" />
-                      <p className="text-lg">No images selected</p>
-                      <p className="text-sm">Upload images to see preview</p>
+                    <div className="flex flex-col items-center justify-center h-24 sm:h-32 text-gray-400">
+                      <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
+                      <p className="text-xs sm:text-sm">No images selected</p>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-gray-700">
-                          Selected Images ({selectedImages.length})
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <h3 className="text-xs sm:text-sm font-medium text-gray-700">
+                          Selected ({selectedImages.length})
                         </h3>
-                        <p className="text-xs text-gray-500">
-                          Drag to reorder • Click star to set primary
+                        <p className="text-xs text-gray-500 hidden sm:block">
+                          Drag • Star for primary
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
                         {selectedImages.map((image, index) => (
                           <div
                             key={image.id}
@@ -409,9 +405,9 @@ export const PortfolioCreationModal = ({
                             onDragStart={() => handleDragStart(index)}
                             onDragOver={(e) => handleDragOver(e, index)}
                             onDragEnd={handleDragEnd}
-                            className={`relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-move transition-all duration-200 ${
-                              draggedIndex === index ? "opacity-50 scale-95" : "hover:shadow-lg"
-                            }`}
+                            className={`relative group bg-gray-100 rounded-md overflow-hidden aspect-square cursor-move transition-all duration-200 ${
+                              draggedIndex === index ? "opacity-50 scale-95" : "hover:shadow-md"
+                            } min-w-0`}
                           >
                             <img
                               src={image.preview}
@@ -419,49 +415,62 @@ export const PortfolioCreationModal = ({
                               className="w-full h-full object-cover"
                             />
                             
-                            {/* Primary Badge */}
+                            {/* Primary Badge - Compact */}
                             {image.isPrimary && (
-                              <div className="absolute top-2 left-2">
-                                <Badge className="bg-yellow-500 text-white text-xs">
-                                  <Star className="w-3 h-3 mr-1 fill-current" />
-                                  Primary
-                                </Badge>
+                              <div className="absolute top-0.5 sm:top-1 left-0.5 sm:left-1">
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                                  <Star className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white fill-current" />
+                                </div>
                               </div>
                             )}
                             
-                            {/* Action Buttons */}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-200">
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-1">
+                            {/* Action Buttons - Compact */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200">
+                              <div className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-0.5 sm:gap-1">
                                 <Button
                                   size="sm"
                                   variant="secondary"
                                   onClick={() => setPrimaryImage(image.id)}
-                                  className="h-8 w-8 p-0 bg-white/90 hover:bg-white"
+                                  className="h-4 w-4 sm:h-5 sm:w-5 p-0 bg-white/90 hover:bg-white rounded-full"
                                   disabled={image.isPrimary}
                                 >
-                                  <Star className={`w-3 h-3 ${image.isPrimary ? "fill-current text-yellow-500" : ""}`} />
+                                  <Star className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${image.isPrimary ? "fill-current text-yellow-500" : ""}`} />
                                 </Button>
                                 
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => removeImage(image.id)}
-                                  className="h-8 w-8 p-0 bg-red-500/90 hover:bg-red-600"
+                                  className="h-4 w-4 sm:h-5 sm:w-5 p-0 bg-red-500/90 hover:bg-red-600 rounded-full"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
                                 </Button>
                               </div>
                               
-                              {/* Drag Indicator */}
-                              <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <div className="flex items-center gap-1 text-white text-xs bg-black/50 px-2 py-1 rounded">
-                                  <Move className="w-3 h-3" />
-                                  Drag to reorder
+                              {/* Index Number */}
+                              <div className="absolute bottom-0.5 sm:bottom-1 left-0.5 sm:left-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="text-white text-xs bg-black/60 px-1 rounded text-center min-w-[14px] sm:min-w-[16px] h-3 sm:h-4 flex items-center justify-center">
+                                  {index + 1}
                                 </div>
                               </div>
                             </div>
                           </div>
                         ))}
+                        
+                        {/* Add More Images Button */}
+                        <div
+                          onClick={(e) => {
+                            e.preventDefault();
+                            try {
+                              open();
+                            } catch (error) {
+                              openFileExplorer();
+                            }
+                          }}
+                          className="aspect-square border-2 border-dashed border-gray-300 hover:border-purple-400 rounded-md cursor-pointer transition-colors duration-200 flex items-center justify-center bg-gray-50 hover:bg-purple-50 min-w-0"
+                        >
+                          <Plus className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                        </div>
                       </div>
                     </>
                   )}
@@ -471,7 +480,7 @@ export const PortfolioCreationModal = ({
             </div>
 
             {/* Footer - Always visible */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 {selectedImages.length > 0 && (
                   <>
@@ -481,19 +490,19 @@ export const PortfolioCreationModal = ({
                 )}
               </div>
               
-              <div className="flex gap-3 w-full sm:w-auto">
+              <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
                 <Button
                   variant="outline"
                   onClick={handleClose}
                   disabled={isSubmitting}
-                  className="px-6 py-2 flex-1 sm:flex-none"
+                  className="px-4 sm:px-6 py-2 flex-1 sm:flex-none text-sm sm:text-base"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={selectedImages.length === 0 || !title.trim() || !specialtyId || isSubmitting}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex-1 sm:flex-none"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex-1 sm:flex-none text-sm sm:text-base"
                 >
                   {isSubmitting ? (
                     <>

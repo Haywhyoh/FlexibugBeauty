@@ -22,6 +22,27 @@ export const DepositPaymentHandler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Helper function to handle guest client bookings
+  const handleGuestClientBooking = async (appointmentData: any) => {
+    try {
+      // For now, we'll return null and handle guest clients through appointment fields
+      // This will be enhanced when we implement the guest_clients table
+      
+      // Log guest booking for tracking
+      console.log('Processing guest booking:', {
+        client_name: appointmentData.client_name,
+        client_email: appointmentData.client_email,
+        client_phone: appointmentData.client_phone,
+        professional_id: appointmentData.professional_id
+      });
+      
+      return null; // Guest bookings don't have client_id yet
+    } catch (error) {
+      console.error('Error handling guest client booking:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const processPayment = async () => {
       try {
@@ -67,20 +88,36 @@ export const DepositPaymentHandler = () => {
           // Payment successful, create appointment and transaction records
           const { appointment_data } = bookingData;
           
-          // For public bookings, we'll use the professional's ID as the user_id
-          // and store client information in metadata for tracking purposes
-          const paymentUserId = appointment_data.user_id || appointment_data.professional_id;
+          // Handle both authenticated and guest bookings
+          let clientUserId = null;
+          let isGuestBooking = false;
+          
+          if (appointment_data.user_id) {
+            // Authenticated user booking
+            clientUserId = appointment_data.user_id;
+          } else {
+            // Guest booking - create or find guest client record
+            isGuestBooking = true;
+            clientUserId = await handleGuestClientBooking(appointment_data);
+          }
+          
+          // For payment transaction user_id, use client if available, otherwise professional
+          const paymentUserId = clientUserId || appointment_data.professional_id;
 
           // Create the appointment
           const { data: appointment, error: appointmentError } = await supabase
             .from('appointments')
             .insert({
               ...appointment_data,
-              client_id: clientUserId, // Link to the client profile
+              client_id: clientUserId, // Will be null for guest bookings initially
               status: 'confirmed',
               deposit_paid: true,
               payment_status: 'partial',
               deposit_paid_at: new Date().toISOString(),
+              // Store guest client info in the appointment record for now
+              client_name: appointment_data.client_name,
+              client_email: appointment_data.client_email,
+              client_phone: appointment_data.client_phone,
             })
             .select()
             .single();
@@ -104,11 +141,13 @@ export const DepositPaymentHandler = () => {
               paid_at: paymentVerification.paid_at,
               metadata: {
                 ...paymentVerification.metadata,
-                // Store client information for public bookings
+                // Store client information for all bookings
                 client_name: appointment_data.client_name,
                 client_email: appointment_data.client_email,
                 client_phone: appointment_data.client_phone,
-                booking_type: appointment_data.user_id ? 'authenticated' : 'public',
+                booking_type: isGuestBooking ? 'guest' : 'authenticated',
+                client_user_id: clientUserId,
+                professional_id: appointment_data.professional_id,
               },
             });
 

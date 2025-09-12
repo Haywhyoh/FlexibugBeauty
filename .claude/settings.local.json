@@ -6,7 +6,8 @@
       "Bash(npx supabase:*)",
       "Bash(npm install:*)",
       "Bash(npm run lint)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Read(//c/Users/USER/Pictures/Screenshots/**)"
     ],
     "deny": [],
     "ask": []

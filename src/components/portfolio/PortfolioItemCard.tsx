@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,14 +40,17 @@ interface PortfolioItemCardProps {
   specialties: Specialty[];
   onUpdate: (id: string, updates: Partial<PortfolioItem>) => void;
   onDelete: (id: string, imageUrl: string) => void;
+  variant?: 'featured' | 'masonry' | 'default';
 }
 
-export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: PortfolioItemCardProps) => {
+export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete, variant = 'default' }: PortfolioItemCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description || '');
   const [specialtyId, setSpecialtyId] = useState(item.specialty_id || '');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
   
   // Get images from portfolio_images or fallback to single image_url
   const images = item.portfolio_images && item.portfolio_images.length > 0 
@@ -89,18 +92,70 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // Auto-preview functionality on hover
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isHovered && hasMultipleImages && variant !== 'masonry') {
+      intervalId = setInterval(() => {
+        setPreviewIndex((prev) => (prev + 1) % images.length);
+      }, 1500); // Change image every 1.5 seconds
+    } else {
+      setPreviewIndex(currentImageIndex);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isHovered, hasMultipleImages, images.length, currentImageIndex, variant]);
+
+  // Get card height based on variant
+  const getCardHeight = () => {
+    if (variant === 'featured') return 'h-64 sm:h-72 lg:h-80';
+    if (variant === 'masonry') return 'h-auto';
+    return 'h-40 sm:h-48 md:h-40 lg:h-48';
+  };
+
+  // Get image container classes based on variant
+  const getImageContainerClasses = () => {
+    if (variant === 'masonry') {
+      // For masonry, use min height and let content determine height
+      return 'w-full min-h-[200px] max-h-[400px] overflow-hidden';
+    }
+    if (variant === 'featured') {
+      return 'w-full h-64 sm:h-72 lg:h-80 overflow-hidden';
+    }
+    return 'w-full h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden';
+  };
+
   return (
-    <Card className="bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-200 group w-full overflow-hidden">
+    <Card 
+      className={`bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group w-full overflow-hidden ${
+        variant === 'featured' ? 'ring-2 ring-purple-200 hover:ring-purple-300' : 'hover:shadow-lg'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <CardContent className="p-0 w-full">
         <div className="relative overflow-hidden rounded-t-lg w-full">
-          <div className="w-full h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden">
+          <div className={getImageContainerClasses()}>
             {images.length > 0 ? (
               <>
                 <img
-                  src={images[currentImageIndex]?.url}
-                  alt={images[currentImageIndex]?.alt || item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  src={images[isHovered && hasMultipleImages ? previewIndex : currentImageIndex]?.url}
+                  alt={images[isHovered && hasMultipleImages ? previewIndex : currentImageIndex]?.alt || item.title}
+                  className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
+                    variant === 'masonry' ? 'object-cover' : 'object-cover'
+                  }`}
+                  style={variant === 'masonry' ? { height: 'auto', minHeight: '200px' } : undefined}
                 />
+                
+                {/* Auto-preview overlay for hover */}
+                {isHovered && hasMultipleImages && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                )}
                 
                 {/* Image Navigation Arrows - only show if multiple images */}
                 {hasMultipleImages && (
@@ -124,10 +179,18 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
                   </>
                 )}
                 
-                {/* Image Counter - only show if multiple images */}
+                {/* Enhanced Image Counter and Info */}
                 {hasMultipleImages && (
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                    {currentImageIndex + 1} / {images.length}
+                  <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1">
+                    <div className="bg-black/80 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                      {(isHovered ? previewIndex : currentImageIndex) + 1} / {images.length}
+                    </div>
+                    {variant !== 'masonry' && (
+                      <div className="bg-purple-600/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm flex items-center gap-1">
+                        <Image className="w-3 h-3" />
+                        <span>Gallery</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -141,20 +204,32 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
             )}
           </div>
           
-          {/* Featured Badge */}
-          {item.is_featured && (
-            <Badge className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 z-10">
-              <Star className="w-3 h-3 mr-1" />
-              <span className="hidden sm:inline">Featured</span>
-            </Badge>
-          )}
+          {/* Enhanced Badge System */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1 z-20">
+            {item.is_featured && (
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1 shadow-lg">
+                <Star className="w-3 h-3 mr-1 fill-current" />
+                <span className="hidden sm:inline font-medium">Featured</span>
+              </Badge>
+            )}
+            {item.specialty_id && (
+              <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 text-xs px-2 py-1 max-w-[calc(100%-2rem)] truncate shadow-sm">
+                {specialties.find(s => s.id === item.specialty_id)?.name}
+              </Badge>
+            )}
+          </div>
 
-          {/* Specialty Badge */}
-          {item.specialty_id && (
-            <Badge className="absolute top-2 right-2 bg-white/90 text-gray-800 text-xs px-2 py-1 max-w-[calc(100%-5rem)] truncate z-10">
-              {specialties.find(s => s.id === item.specialty_id)?.name}
-            </Badge>
-          )}
+          {/* Portfolio Stats - Better positioned */}
+          <div className="absolute top-3 right-3 flex flex-col gap-1 z-20">
+            <div className="bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              <span>{item.views || 0}</span>
+            </div>
+            <div className="bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <Star className="w-3 h-3" />
+              <span>{item.likes || 0}</span>
+            </div>
+          </div>
 
           {/* Hover Overlay with Action Buttons */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
@@ -181,17 +256,18 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
             </div>
           </div>
           
-          {/* Image dots indicator - only show if multiple images */}
-          {hasMultipleImages && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+          {/* Enhanced dots indicator with preview functionality */}
+          {hasMultipleImages && variant !== 'masonry' && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-20">
               {images.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                    index === currentImageIndex 
-                      ? 'bg-white' 
-                      : 'bg-white/50 hover:bg-white/75'
+                  onMouseEnter={() => setPreviewIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 backdrop-blur-sm ${
+                    index === (isHovered ? previewIndex : currentImageIndex)
+                      ? 'bg-white shadow-lg scale-125' 
+                      : 'bg-white/60 hover:bg-white/80 hover:scale-110'
                   }`}
                 />
               ))}
@@ -245,20 +321,24 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
                 </p>
               )}
               
-              {/* Stats and Date */}
-              <div className="flex items-center justify-between text-xs text-gray-600 mt-3 w-full">
-                <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-                  <span className="flex items-center gap-1 min-w-0">
-                    <Star className="w-3 h-3 text-yellow-500 flex-shrink-0" />
-                    <span className="truncate">{item.likes || 0}</span>
-                  </span>
-                  <span className="flex items-center gap-1 min-w-0">
-                    <Eye className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">{item.views || 0}</span>
-                  </span>
+              {/* Enhanced Footer with better layout */}
+              <div className="flex items-center justify-between text-xs text-gray-500 mt-3 w-full pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {hasMultipleImages && (
+                    <span className="flex items-center gap-1 text-purple-600 font-medium">
+                      <Image className="w-3 h-3" />
+                      <span>{images.length} photos</span>
+                    </span>
+                  )}
+                  {variant === 'featured' && (
+                    <span className="flex items-center gap-1 text-yellow-600">
+                      <Star className="w-3 h-3 fill-current" />
+                      <span className="hidden sm:inline">Featured</span>
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs flex-shrink-0 ml-2">
-                  {new Date(item.created_at).toLocaleDateString()}
+                <span className="text-xs flex-shrink-0 ml-2 text-gray-400">
+                  {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
             </div>
