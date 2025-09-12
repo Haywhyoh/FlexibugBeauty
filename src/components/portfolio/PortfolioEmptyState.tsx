@@ -14,7 +14,7 @@ export const PortfolioEmptyState = ({ onUploadClick, uploading }: PortfolioEmpty
         <Camera className="w-12 h-12 lg:w-16 lg:h-16 text-purple-400 mx-auto mb-4" />
         <h3 className="text-lg lg:text-xl font-semibold text-gray-800 mb-2">Add New Photos</h3>
         <p className="text-gray-600 mb-4 lg:mb-6 text-sm lg:text-base">
-          Drag and drop your photos here, or click to browse
+          Create your first portfolio item with multiple images
         </p>
         <Button 
           onClick={onUploadClick}
@@ -22,7 +22,7 @@ export const PortfolioEmptyState = ({ onUploadClick, uploading }: PortfolioEmpty
           disabled={uploading}
         >
           <Plus className="w-4 h-4 mr-2" />
-          {uploading ? "Uploading..." : "Upload Photos"}
+          {uploading ? "Creating..." : "Create Portfolio"}
         </Button>
       </CardContent>
     </Card>

@@ -67,11 +67,16 @@ export const DepositPaymentHandler = () => {
           // Payment successful, create appointment and transaction records
           const { appointment_data } = bookingData;
           
+          // For public bookings, we'll use the professional's ID as the user_id
+          // and store client information in metadata for tracking purposes
+          const paymentUserId = appointment_data.user_id || appointment_data.professional_id;
+
           // Create the appointment
           const { data: appointment, error: appointmentError } = await supabase
             .from('appointments')
             .insert({
               ...appointment_data,
+              client_id: clientUserId, // Link to the client profile
               status: 'confirmed',
               deposit_paid: true,
               payment_status: 'partial',
@@ -87,7 +92,7 @@ export const DepositPaymentHandler = () => {
             .from('payment_transactions')
             .insert({
               appointment_id: appointment.id,
-              user_id: appointment_data.user_id || appointment.user_id,
+              user_id: paymentUserId, // Use client ID or professional ID for public bookings
               professional_id: appointment_data.professional_id,
               service_id: appointment_data.service_id,
               amount: paymentVerification.amount / 100, // Convert from kobo to naira
@@ -97,7 +102,14 @@ export const DepositPaymentHandler = () => {
               status: 'success',
               gateway_response: paymentVerification.gateway_response,
               paid_at: paymentVerification.paid_at,
-              metadata: paymentVerification.metadata,
+              metadata: {
+                ...paymentVerification.metadata,
+                // Store client information for public bookings
+                client_name: appointment_data.client_name,
+                client_email: appointment_data.client_email,
+                client_phone: appointment_data.client_phone,
+                booking_type: appointment_data.user_id ? 'authenticated' : 'public',
+              },
             });
 
           if (transactionError) {
@@ -121,7 +133,7 @@ export const DepositPaymentHandler = () => {
             // Send client confirmation
             await supabase.functions.invoke('send-appointment-email', {
               body: {
-                type: 'deposit_confirmation',
+                type: 'confirmation',
                 appointmentId: appointment.id,
                 recipientEmail: appointment_data.client_email,
                 recipientName: appointment_data.client_name,

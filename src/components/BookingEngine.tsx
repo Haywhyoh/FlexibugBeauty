@@ -310,9 +310,14 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete, pres
         ? `${professionalProfile.first_name} ${professionalProfile.last_name}`
         : professionalProfile?.full_name || professionalProfile?.business_name || 'Beauty Professional';
 
+      // For public bookings, we don't create client profiles
+      // Client information is stored in the appointment itself
+      const clientUserId = null; // No authenticated user for public bookings
+
       // Create the appointment
       const appointmentData = {
         professional_id: professionalId,
+        client_id: clientUserId, // Link to the client profile
         service_id: selectedService.id,
         start_time: selectedTimeSlot.start.toISOString(),
         end_time: selectedTimeSlot.end.toISOString(),

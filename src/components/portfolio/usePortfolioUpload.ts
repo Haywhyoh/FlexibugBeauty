@@ -41,25 +41,31 @@ export const usePortfolioUpload = (portfolioItems: PortfolioItem[], onUploadComp
       }));
       setUploadProgress(initialProgress);
 
-      // Check if this is for a new portfolio item or adding to existing
-      const shouldCreateNewItem = files.length > 1 || portfolioItems.length === 0;
-      let portfolioItemId: string | null = null;
-
-      if (shouldCreateNewItem) {
-        // Create new portfolio item
-        const { data: portfolioItem, error: portfolioError } = await supabase
-          .from('portfolio_items')
-          .insert({
-            user_id: user?.id,
-            title: `New Portfolio Item ${portfolioItems.length + 1}`,
-            sort_order: portfolioItems.length,
-          })
-          .select()
-          .single();
-
-        if (portfolioError) throw portfolioError;
-        portfolioItemId = portfolioItem.id;
+      // Check authentication
+      if (!user?.id) {
+        throw new Error('User not authenticated');
       }
+
+      // Always create new portfolio item for multiple file uploads
+      console.log('Creating portfolio item for user:', user.id);
+      const { data: portfolioItem, error: portfolioError } = await supabase
+        .from('portfolio_items')
+        .insert({
+          user_id: user.id,
+          title: `New Portfolio Item ${portfolioItems.length + 1}`,
+          sort_order: portfolioItems.length,
+          image_url: '', // Provide empty string to satisfy NOT NULL constraint, will be updated later
+        })
+        .select()
+        .single();
+
+      if (portfolioError) {
+        console.error('Error creating portfolio item:', portfolioError);
+        throw portfolioError;
+      }
+      
+      const portfolioItemId = portfolioItem.id;
+      console.log('Created portfolio item with ID:', portfolioItemId);
 
       // Upload all images
       const uploadPromises = files.map(async (file, index) => {
@@ -79,17 +85,38 @@ export const usePortfolioUpload = (portfolioItems: PortfolioItem[], onUploadComp
             .getPublicUrl(filePath);
 
           // Insert into portfolio_images table
-          const { error: insertError } = await supabase
+          console.log('Inserting portfolio image:', {
+            portfolio_item_id: portfolioItemId,
+            image_url: publicUrl,
+            sort_order: index,
+            is_primary: index === 0,
+            alt_text: file.name
+          });
+
+          const { data: imageData, error: insertError } = await supabase
             .from('portfolio_images')
             .insert({
-              portfolio_item_id: portfolioItemId!,
+              portfolio_item_id: portfolioItemId,
               image_url: publicUrl,
               sort_order: index,
               is_primary: index === 0, // First image is primary
               alt_text: file.name
-            });
+            })
+            .select()
+            .single();
 
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error('Error inserting portfolio image:', insertError);
+            console.error('Insert error details:', {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint
+            });
+            throw insertError;
+          }
+
+          console.log('Successfully inserted portfolio image:', imageData?.id);
 
           // Update progress
           setUploadProgress(prev => prev.map(p => 
@@ -98,7 +125,7 @@ export const usePortfolioUpload = (portfolioItems: PortfolioItem[], onUploadComp
               : p
           ));
 
-          return { success: true, fileName: file.name };
+          return { success: true, fileName: file.name, imageUrl: publicUrl };
         } catch (error) {
           console.error(`Error uploading ${file.name}:`, error);
           
@@ -117,7 +144,17 @@ export const usePortfolioUpload = (portfolioItems: PortfolioItem[], onUploadComp
       const successCount = results.filter(r => r.success).length;
       const errorCount = results.filter(r => !r.success).length;
 
+      // Update portfolio item with primary image URL for backward compatibility
       if (successCount > 0) {
+        // Get the primary image URL (first uploaded image)
+        const firstSuccessfulResult = results.find(r => r.success);
+        if (firstSuccessfulResult && 'imageUrl' in firstSuccessfulResult) {
+          await supabase
+            .from('portfolio_items')
+            .update({ image_url: firstSuccessfulResult.imageUrl })
+            .eq('id', portfolioItemId);
+        }
+
         await onUploadComplete();
         
         toast({

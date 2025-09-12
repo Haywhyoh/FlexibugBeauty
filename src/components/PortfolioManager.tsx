@@ -7,6 +7,7 @@ import { PortfolioHeader } from "./portfolio/PortfolioHeader";
 import { PortfolioFilters } from "./portfolio/PortfolioFilters";
 import { PortfolioEmptyState } from "./portfolio/PortfolioEmptyState";
 import { PortfolioGrid } from "./portfolio/PortfolioGrid";
+import { PortfolioCreationModal } from "./portfolio/PortfolioCreationModal";
 import { usePortfolioUpload } from "./portfolio/usePortfolioUpload";
 
 interface PortfolioImage {
@@ -42,6 +43,7 @@ export const PortfolioManager = () => {
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
+  const [showCreationModal, setShowCreationModal] = useState(false);
 
   useEffect(() => {
     fetchSpecialties();
@@ -97,13 +99,114 @@ export const PortfolioManager = () => {
   const { handleImageUpload } = usePortfolioUpload(portfolioItems, fetchPortfolioItems);
 
   const handleUploadClick = () => {
-    document.getElementById('portfolio-upload')?.click();
+    setShowCreationModal(true);
   };
 
   const handleImageUploadWithLoading = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setUploading(true);
     await handleImageUpload(event);
     setUploading(false);
+  };
+
+  const handleCreatePortfolio = async (data: {
+    title: string;
+    description: string;
+    specialtyId: string;
+    images: File[];
+    primaryImageIndex: number;
+  }) => {
+    try {
+      setUploading(true);
+
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create portfolio item with proper form data
+      const { data: portfolioItem, error: portfolioError } = await supabase
+        .from('portfolio_items')
+        .insert({
+          user_id: user.id,
+          title: data.title,
+          description: data.description || null,
+          specialty_id: data.specialtyId || null,
+          sort_order: portfolioItems.length,
+          image_url: '', // Will be updated after uploading images
+        })
+        .select()
+        .single();
+
+      if (portfolioError) throw portfolioError;
+
+      const portfolioItemId = portfolioItem.id;
+      let primaryImageUrl = '';
+
+      // Upload all images
+      const uploadPromises = data.images.map(async (file, index) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${index}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from('portfolio-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('portfolio-images')
+          .getPublicUrl(filePath);
+
+        // Store primary image URL
+        if (index === data.primaryImageIndex) {
+          primaryImageUrl = publicUrl;
+        }
+
+        // Insert into portfolio_images table
+        const { error: insertError } = await supabase
+          .from('portfolio_images')
+          .insert({
+            portfolio_item_id: portfolioItemId,
+            image_url: publicUrl,
+            sort_order: index,
+            is_primary: index === data.primaryImageIndex,
+            alt_text: file.name
+          });
+
+        if (insertError) throw insertError;
+
+        return publicUrl;
+      });
+
+      await Promise.all(uploadPromises);
+
+      // Update portfolio item with primary image URL
+      if (primaryImageUrl) {
+        await supabase
+          .from('portfolio_items')
+          .update({ image_url: primaryImageUrl })
+          .eq('id', portfolioItemId);
+      }
+
+      await fetchPortfolioItems();
+      setShowCreationModal(false);
+
+      toast({
+        title: "Success",
+        description: `Portfolio "${data.title}" created with ${data.images.length} images`,
+      });
+
+    } catch (error) {
+      console.error('Error creating portfolio:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create portfolio",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const updatePortfolioItem = async (id: string, updates: Partial<PortfolioItem>) => {
@@ -185,15 +288,6 @@ export const PortfolioManager = () => {
             portfolioItems={portfolioItems}
           />
 
-          <input
-            type="file"
-            id="portfolio-upload"
-            accept="image/*"
-            multiple
-            onChange={handleImageUploadWithLoading}
-            className="hidden"
-            disabled={uploading}
-          />
 
           <PortfolioFilters
             specialties={specialties}
@@ -214,6 +308,15 @@ export const PortfolioManager = () => {
           )}
         </div>
       </div>
+
+      {/* Portfolio Creation Modal */}
+      <PortfolioCreationModal
+        isOpen={showCreationModal}
+        onClose={() => setShowCreationModal(false)}
+        onSubmit={handleCreatePortfolio}
+        specialties={specialties}
+        isSubmitting={uploading}
+      />
     </div>
   );
 };

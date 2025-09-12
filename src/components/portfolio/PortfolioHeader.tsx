@@ -40,7 +40,7 @@ export const PortfolioHeader = ({ onUploadClick, uploading, portfolioItems = [] 
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 w-full sm:w-auto text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3"
           >
             <Upload className="w-4 h-4 mr-2" />
-            {uploading ? "Uploading..." : "Upload Images"}
+{uploading ? "Creating..." : "Create Portfolio"}
           </Button>
         </div>
       </div>
