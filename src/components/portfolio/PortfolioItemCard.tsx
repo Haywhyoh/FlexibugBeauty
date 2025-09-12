@@ -5,7 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Star, Eye } from "lucide-react";
+import { Edit, Trash2, Star, Eye, ChevronLeft, ChevronRight, Image, Plus } from "lucide-react";
+
+interface PortfolioImage {
+  id: string;
+  image_url: string;
+  sort_order: number;
+  is_primary: boolean | null;
+  alt_text: string | null;
+}
 
 interface PortfolioItem {
   id: string;
@@ -18,6 +26,7 @@ interface PortfolioItem {
   created_at: string;
   likes?: number;
   views?: number;
+  portfolio_images?: PortfolioImage[];
 }
 
 interface Specialty {
@@ -38,6 +47,26 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description || '');
   const [specialtyId, setSpecialtyId] = useState(item.specialty_id || '');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Get images from portfolio_images or fallback to single image_url
+  const images = item.portfolio_images && item.portfolio_images.length > 0 
+    ? item.portfolio_images.map(img => ({
+        id: img.id,
+        url: img.image_url,
+        alt: img.alt_text || item.title,
+        isPrimary: img.is_primary
+      }))
+    : item.image_url 
+    ? [{
+        id: 'legacy',
+        url: item.image_url,
+        alt: item.title,
+        isPrimary: true
+      }]
+    : [];
+  
+  const hasMultipleImages = images.length > 1;
 
   const handleSave = () => {
     onUpdate(item.id, {
@@ -51,22 +80,70 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
   const toggleFeatured = () => {
     onUpdate(item.id, { is_featured: !item.is_featured });
   };
+  
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+  
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   return (
     <Card className="bg-white/70 backdrop-blur-sm hover:shadow-lg transition-all duration-200 group w-full overflow-hidden">
       <CardContent className="p-0 w-full">
         <div className="relative overflow-hidden rounded-t-lg w-full">
           <div className="w-full h-40 sm:h-48 md:h-40 lg:h-48 overflow-hidden">
-            <img
-              src={item.image_url}
-              alt={item.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+            {images.length > 0 ? (
+              <>
+                <img
+                  src={images[currentImageIndex]?.url}
+                  alt={images[currentImageIndex]?.alt || item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                
+                {/* Image Navigation Arrows - only show if multiple images */}
+                {hasMultipleImages && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+                
+                {/* Image Counter - only show if multiple images */}
+                {hasMultipleImages && (
+                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                    {currentImageIndex + 1} / {images.length}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                <div className="text-center text-gray-400">
+                  <Image className="w-8 h-8 mx-auto mb-2" />
+                  <p className="text-xs">No images</p>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Featured Badge */}
           {item.is_featured && (
-            <Badge className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1">
+            <Badge className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 z-10">
               <Star className="w-3 h-3 mr-1" />
               <span className="hidden sm:inline">Featured</span>
             </Badge>
@@ -74,13 +151,13 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
 
           {/* Specialty Badge */}
           {item.specialty_id && (
-            <Badge className="absolute top-2 right-2 bg-white/90 text-gray-800 text-xs px-2 py-1 max-w-[calc(100%-5rem)] truncate">
+            <Badge className="absolute top-2 right-2 bg-white/90 text-gray-800 text-xs px-2 py-1 max-w-[calc(100%-5rem)] truncate z-10">
               {specialties.find(s => s.id === item.specialty_id)?.name}
             </Badge>
           )}
 
           {/* Hover Overlay with Action Buttons */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-1 sm:gap-2">
               <Button size="sm" variant="secondary" onClick={() => setIsEditing(true)} className="h-8 w-8 p-0">
                 <Edit className="w-3 h-3" />
@@ -96,13 +173,30 @@ export const PortfolioItemCard = ({ item, specialties, onUpdate, onDelete }: Por
               <Button 
                 size="sm" 
                 variant="destructive" 
-                onClick={() => onDelete(item.id, item.image_url)}
+                onClick={() => onDelete(item.id, images[0]?.url || '')}
                 className="h-8 w-8 p-0"
               >
                 <Trash2 className="w-3 h-3" />
               </Button>
             </div>
           </div>
+          
+          {/* Image dots indicator - only show if multiple images */}
+          {hasMultipleImages && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentImageIndex 
+                      ? 'bg-white' 
+                      : 'bg-white/50 hover:bg-white/75'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="p-3 sm:p-4 w-full">

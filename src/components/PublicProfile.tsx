@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Phone, Globe, Instagram, Star, Clock, DollarSign, Calendar, Facebook, Image, Search, Filter, AlertCircle, Info } from "lucide-react";
 import { ServiceDetailsModal } from "./ServiceDetailsModal";
+import { PortfolioGalleryModal } from "./portfolio/PortfolioGalleryModal";
 
 interface PublicProfileData {
   profile: {
@@ -50,6 +51,13 @@ interface PublicProfileData {
     image_url: string;
     specialties: { name: string } | null;
     is_featured: boolean | null;
+    portfolio_images?: Array<{
+      id: string;
+      image_url: string;
+      sort_order: number;
+      is_primary: boolean | null;
+      alt_text: string | null;
+    }>;
   }>;
 }
 
@@ -69,6 +77,11 @@ export const PublicProfile = () => {
   const [sortBy, setSortBy] = useState<string>('name');
   const [selectedService, setSelectedService] = useState<PublicProfileData['services'][0] | null>(null);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
+  
+  // Portfolio gallery modal state
+  const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<PublicProfileData['portfolioItems'][0] | null>(null);
+  const [showPortfolioGallery, setShowPortfolioGallery] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (profileId) {
@@ -115,7 +128,7 @@ export const PublicProfile = () => {
 
       if (servicesError) throw servicesError;
 
-      // Fetch portfolio items
+      // Fetch portfolio items with images
       const { data: portfolioData, error: portfolioError } = await supabase
         .from('portfolio_items')
         .select(`
@@ -124,7 +137,15 @@ export const PublicProfile = () => {
           description,
           image_url,
           is_featured,
-          specialties!specialty_id(name)
+          created_at,
+          specialties!specialty_id(name),
+          portfolio_images(
+            id,
+            image_url,
+            sort_order,
+            is_primary,
+            alt_text
+          )
         `)
         .eq('user_id', profileData.id)
         .order('is_featured', { ascending: false })
@@ -132,10 +153,16 @@ export const PublicProfile = () => {
 
       if (portfolioError) throw portfolioError;
 
+      // Sort portfolio images within each portfolio item
+      const portfolioWithSortedImages = (portfolioData || []).map(item => ({
+        ...item,
+        portfolio_images: (item.portfolio_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
+      }));
+
       setProfileData({
         profile: profileData,
         services: servicesData || [],
-        portfolioItems: portfolioData || [],
+        portfolioItems: portfolioWithSortedImages,
       });
     } catch (error) {
       console.error('Error fetching public profile:', error);
@@ -850,56 +877,88 @@ export const PublicProfile = () => {
               </div>
             )}
 
-            {/* Portfolio Grid Gallery */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredPortfolio.map((item, index) => (
-                <div 
-                  key={item.id} 
-                  className="relative group cursor-pointer"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300">
-                    {/* Image Container */}
-                    <div className="relative aspect-square overflow-hidden">
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                      
-                      {/* Featured Badge */}
-                      {item.is_featured && (
-                        <div className="absolute top-2 left-2 z-10">
-                          <Badge className="bg-yellow-500 text-white shadow-lg text-xs">
-                            <Star className="w-3 h-3 mr-1 fill-current" />
-                            Featured
-                          </Badge>
-                        </div>
-                      )}
-                      
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300">
-                        <div className="absolute inset-0 flex flex-col justify-end p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <h3 className="font-bold text-sm mb-1 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                            {item.title}
-                          </h3>
-                          {item.description && (
-                            <p className="text-xs text-gray-200 mb-2 line-clamp-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-75">
-                              {item.description}
-                            </p>
-                          )}
-                          {item.specialties && (
-                            <Badge variant="secondary" className="bg-purple-600 text-white text-xs w-fit transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-150">
-                              {item.specialties.name}
+            {/* Portfolio Masonry Grid Gallery */}
+            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+              {filteredPortfolio.map((item, index) => {
+                // Get primary image or first image
+                const primaryImage = item.portfolio_images?.find(img => img.is_primary) || item.portfolio_images?.[0];
+                const displayImage = primaryImage?.image_url || item.image_url;
+                const imageCount = item.portfolio_images?.length || (item.image_url ? 1 : 0);
+                
+                return (
+                  <div 
+                    key={item.id} 
+                    className="relative group cursor-pointer break-inside-avoid mb-4"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => {
+                      setSelectedPortfolioItem(item);
+                      setSelectedImageIndex(0);
+                      setShowPortfolioGallery(true);
+                    }}
+                  >
+                    <div className="relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      {/* Image Container */}
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={displayImage}
+                          alt={item.title}
+                          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        
+                        {/* Image Count Badge */}
+                        {imageCount > 1 && (
+                          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                            <Image className="w-3 h-3 inline mr-1" />
+                            {imageCount}
+                          </div>
+                        )}
+                        
+                        {/* Featured Badge */}
+                        {item.is_featured && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <Badge className="bg-yellow-500 text-white shadow-lg text-xs">
+                              <Star className="w-3 h-3 mr-1 fill-current" />
+                              Featured
                             </Badge>
-                          )}
+                          </div>
+                        )}
+                        
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300">
+                          <div className="absolute inset-0 flex flex-col justify-end p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h3 className="font-bold text-sm mb-1 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                              {item.title}
+                            </h3>
+                            {item.description && (
+                              <p className="text-xs text-gray-200 mb-2 line-clamp-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+                                {item.description}
+                              </p>
+                            )}
+                            {item.specialties && (
+                              <Badge variant="secondary" className="bg-purple-600 text-white text-xs w-fit transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-150">
+                                {item.specialties.name}
+                              </Badge>
+                            )}
+                            {imageCount > 1 && (
+                              <div className="text-xs text-gray-300 mt-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 delay-200">
+                                Click to view {imageCount} images
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Click to view indicator */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                            <Image className="w-6 h-6 text-white" />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             {/* View More Button */}
@@ -999,6 +1058,18 @@ export const PublicProfile = () => {
             navigate(`/profile/${profileId}/book/${selectedService.id}`);
           }
         }}
+      />
+
+      {/* Portfolio Gallery Modal */}
+      <PortfolioGalleryModal
+        isOpen={showPortfolioGallery}
+        onClose={() => {
+          setShowPortfolioGallery(false);
+          setSelectedPortfolioItem(null);
+          setSelectedImageIndex(0);
+        }}
+        portfolioItem={selectedPortfolioItem}
+        initialImageIndex={selectedImageIndex}
       />
     </div>
   );

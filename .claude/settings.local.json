@@ -4,7 +4,9 @@
       "Bash(npm run build:*)",
       "Bash(npx supabase migration:*)",
       "Bash(npx supabase:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

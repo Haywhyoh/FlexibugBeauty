@@ -577,6 +577,47 @@ export type Database = {
           },
         ]
       }
+      portfolio_images: {
+        Row: {
+          id: string
+          portfolio_item_id: string
+          image_url: string
+          sort_order: number
+          is_primary: boolean | null
+          alt_text: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          portfolio_item_id: string
+          image_url: string
+          sort_order?: number
+          is_primary?: boolean | null
+          alt_text?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          portfolio_item_id?: string
+          image_url?: string
+          sort_order?: number
+          is_primary?: boolean | null
+          alt_text?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_images_portfolio_item_id_fkey"
+            columns: ["portfolio_item_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_name: string | null

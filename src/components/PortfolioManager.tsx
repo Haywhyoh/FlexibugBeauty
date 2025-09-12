@@ -9,6 +9,14 @@ import { PortfolioEmptyState } from "./portfolio/PortfolioEmptyState";
 import { PortfolioGrid } from "./portfolio/PortfolioGrid";
 import { usePortfolioUpload } from "./portfolio/usePortfolioUpload";
 
+interface PortfolioImage {
+  id: string;
+  image_url: string;
+  sort_order: number;
+  is_primary: boolean | null;
+  alt_text: string | null;
+}
+
 interface PortfolioItem {
   id: string;
   title: string;
@@ -18,6 +26,7 @@ interface PortfolioItem {
   is_featured: boolean | null;
   sort_order: number | null;
   created_at: string;
+  portfolio_images?: PortfolioImage[];
 }
 
 interface Specialty {
@@ -59,13 +68,27 @@ export const PortfolioManager = () => {
         .from('portfolio_items')
         .select(`
           *,
-          specialties(name)
+          specialties(name),
+          portfolio_images(
+            id,
+            image_url,
+            sort_order,
+            is_primary,
+            alt_text
+          )
         `)
         .eq('user_id', user?.id)
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      setPortfolioItems(data || []);
+      
+      // Sort images within each portfolio item
+      const portfolioWithSortedImages = (data || []).map(item => ({
+        ...item,
+        portfolio_images: (item.portfolio_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
+      }));
+      
+      setPortfolioItems(portfolioWithSortedImages);
     } catch (error) {
       console.error('Error fetching portfolio items:', error);
     }
@@ -166,6 +189,7 @@ export const PortfolioManager = () => {
             type="file"
             id="portfolio-upload"
             accept="image/*"
+            multiple
             onChange={handleImageUploadWithLoading}
             className="hidden"
             disabled={uploading}
