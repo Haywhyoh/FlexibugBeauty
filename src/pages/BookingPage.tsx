@@ -52,12 +52,6 @@ interface BookingPageData {
     description: string | null;
     price: number | null;
     duration_minutes: number | null;
-    image_url: string | null;
-    client_instructions: string | null;
-    preparation_time: number | null;
-    requires_consultation: boolean | null;
-    complexity_level: string | null;
-    cancellation_policy: string | null;
     specialties: { name: string } | null;
   };
 }
@@ -105,12 +99,6 @@ export const BookingPage = () => {
           description,
           price,
           duration_minutes,
-          image_url,
-          client_instructions,
-          preparation_time,
-          requires_consultation,
-          complexity_level,
-          cancellation_policy,
           specialties!specialty_id(name)
         `)
         .eq('id', serviceId)
@@ -121,15 +109,17 @@ export const BookingPage = () => {
       if (serviceError) throw serviceError;
 
       setBookingData({
-        professional: professionalData,
+        professional: {
+          ...professionalData,
+          deposit_settings: professionalData.deposit_settings as unknown as DepositSettings
+        },
         service: serviceData,
       });
 
       // Calculate deposit amount if required
-      if (professionalData.
-        
-        deposit_settings?.require_deposit && serviceData.price) {
-        calculateDepositAmount(professionalData.deposit_settings, serviceData.price);
+      const depositSettings = professionalData.deposit_settings as unknown as DepositSettings;
+      if (depositSettings?.require_deposit && serviceData.price) {
+        calculateDepositAmount(depositSettings, serviceData.price);
       }
     } catch (error) {
       console.error('Error fetching booking data:', error);
@@ -193,39 +183,18 @@ export const BookingPage = () => {
     return professional.business_name?.charAt(0).toUpperCase() || 'P';
   };
 
-  const formatDuration = (minutes: number | null, prepTime: number | null = null) => {
+  const formatDuration = (minutes: number | null) => {
     if (!minutes) return 'Duration not specified';
     
-    const totalMinutes = minutes + (prepTime || 0);
-    if (totalMinutes >= 60) {
-      const hours = Math.floor(totalMinutes / 60);
-      const remainingMinutes = totalMinutes % 60;
-      if (prepTime && prepTime > 0) {
-        return `${hours}h ${remainingMinutes > 0 ? `${remainingMinutes}m` : ''} (includes ${prepTime}m prep)`;
-      }
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
       return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
     }
     
-    if (prepTime && prepTime > 0) {
-      return `${totalMinutes}m (includes ${prepTime}m prep)`;
-    }
     return `${minutes}m`;
   };
 
-  const getComplexityInfo = (level: string | null) => {
-    switch (level) {
-      case 'basic':
-        return { label: 'Basic', color: 'bg-green-100 text-green-800 border-green-200', description: 'Simple, straightforward service' };
-      case 'intermediate':
-        return { label: 'Intermediate', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', description: 'Moderate complexity, some customization' };
-      case 'advanced':
-        return { label: 'Advanced', color: 'bg-red-100 text-red-800 border-red-200', description: 'Complex service requiring expertise' };
-      default:
-        return { label: 'Basic', color: 'bg-gray-100 text-gray-800 border-gray-200', description: 'Standard service' };
-    }
-  };
-
-  const complexityInfo = getComplexityInfo(service.complexity_level);
 
   const calculateDepositAmount = (settings: DepositSettings, servicePrice: number) => {
     if (!settings.require_deposit) {
@@ -294,16 +263,7 @@ export const BookingPage = () => {
 
   const renderServiceReview = () => (
     <div className="space-y-4 sm:space-y-6">
-      {/* Service Image */}
-      {service.image_url && (
-        <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden">
-          <img
-            src={service.image_url}
-            alt={service.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
+      {/* Service Image - Removed as image_url column doesn't exist */}
 
       {/* Service Info Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -331,19 +291,22 @@ export const BookingPage = () => {
             <div className="flex items-center justify-center gap-1 sm:gap-2 text-purple-600 mb-1 sm:mb-2">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="font-bold text-lg sm:text-xl">
-                {formatDuration(service.duration_minutes, service.preparation_time)}
+                {formatDuration(service.duration_minutes)}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-gray-600">Total Time</p>
+            <p className="text-xs sm:text-sm text-gray-600">Duration</p>
           </CardContent>
         </Card>
 
         <Card className="text-center p-3 sm:p-4">
           <CardContent className="p-0">
-            <Badge className={`${complexityInfo.color} mb-1 sm:mb-2 text-xs sm:text-sm px-2 sm:px-3 py-1`}>
-              {complexityInfo.label}
-            </Badge>
-            <p className="text-xs sm:text-sm text-gray-600">{complexityInfo.description}</p>
+            <div className="flex items-center justify-center gap-1 sm:gap-2 text-purple-600 mb-1 sm:mb-2">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-bold text-lg sm:text-xl">
+                {service.specialties?.name || 'General'}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-600">Specialty</p>
           </CardContent>
         </Card>
       </div>
@@ -381,56 +344,7 @@ export const BookingPage = () => {
         </Card>
       )}
 
-      {/* Important Notices */}
-      <div className="space-y-3 sm:space-y-4">
-        {service.requires_consultation && (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 flex-shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-orange-800 mb-1 text-sm sm:text-base">Consultation Required</h4>
-                  <p className="text-xs sm:text-sm text-orange-700 leading-relaxed">
-                    A consultation appointment is required before booking this service. This helps ensure we can provide the best possible results tailored to your needs.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {service.client_instructions && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">Important Instructions</h4>
-                  <div className="text-xs sm:text-sm text-blue-700 whitespace-pre-line leading-relaxed">
-                    {service.client_instructions}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {service.cancellation_policy && (
-          <Card className="border-gray-200 bg-gray-50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 flex-shrink-0 mt-0.5" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Cancellation Policy</h4>
-                  <div className="text-xs sm:text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-                    {service.cancellation_policy}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Important Notices - Removed as fields don't exist in current schema */}
     </div>
   );
 

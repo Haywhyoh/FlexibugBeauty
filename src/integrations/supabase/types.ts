@@ -579,11 +579,19 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_name: string | null
+          account_number: string | null
+          account_verified: boolean | null
           avatar_url: string | null
+          bank_code: string | null
+          bank_name: string | null
+          bank_setup_completed: boolean | null
           bio: string | null
           business_name: string | null
           business_slug: string | null
+          cover_url: string | null
           created_at: string
+          deposit_settings: Json | null
           email: string | null
           facebook_handle: string | null
           first_name: string | null
@@ -593,6 +601,8 @@ export type Database = {
           is_profile_public: boolean | null
           last_name: string | null
           location: string | null
+          paystack_subaccount_code: string | null
+          paystack_subaccount_id: number | null
           phone: string | null
           tiktok_handle: string | null
           updated_at: string
@@ -601,11 +611,19 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          account_verified?: boolean | null
           avatar_url?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          bank_setup_completed?: boolean | null
           bio?: string | null
           business_name?: string | null
           business_slug?: string | null
+          cover_url?: string | null
           created_at?: string
+          deposit_settings?: Json | null
           email?: string | null
           facebook_handle?: string | null
           first_name?: string | null
@@ -615,6 +633,8 @@ export type Database = {
           is_profile_public?: boolean | null
           last_name?: string | null
           location?: string | null
+          paystack_subaccount_code?: string | null
+          paystack_subaccount_id?: number | null
           phone?: string | null
           tiktok_handle?: string | null
           updated_at?: string
@@ -623,11 +643,19 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
+          account_name?: string | null
+          account_number?: string | null
+          account_verified?: boolean | null
           avatar_url?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          bank_setup_completed?: boolean | null
           bio?: string | null
           business_name?: string | null
           business_slug?: string | null
+          cover_url?: string | null
           created_at?: string
+          deposit_settings?: Json | null
           email?: string | null
           facebook_handle?: string | null
           first_name?: string | null
@@ -637,6 +665,8 @@ export type Database = {
           is_profile_public?: boolean | null
           last_name?: string | null
           location?: string | null
+          paystack_subaccount_code?: string | null
+          paystack_subaccount_id?: number | null
           phone?: string | null
           tiktok_handle?: string | null
           updated_at?: string
