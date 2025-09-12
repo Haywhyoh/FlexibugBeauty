@@ -77,11 +77,11 @@ const Signup = () => {
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              FlexiBug
+              Botglam
             </span>
           </div>
           <CardTitle>Create Account</CardTitle>
-          <CardDescription>Join FlexiBug to grow your beauty business</CardDescription>
+          <CardDescription>Join Botglam to grow your beauty business</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Google Sign Up Button */}

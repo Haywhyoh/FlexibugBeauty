@@ -1,10 +1,10 @@
-# FlexiBug - Product Requirements Document (PRD)
+# Botglam - Product Requirements Document (PRD)
 
 ## 1. Document Metadata
 
 | Field | Value |
 |-------|-------|
-| **Title** | FlexiBug - AI-Powered Beauty Industry Appointment Booking Platform |
+| **Title** | Botglam - AI-Powered Beauty Industry Appointment Booking Platform |
 | **Version** | 1.0 |
 | **Date** | December 2024 |
 | **Author** | Product Development Team |
@@ -16,8 +16,8 @@
 
 ## 2. Executive Summary
 
-### Purpose of FlexiBug
-FlexiBug is a comprehensive, AI-powered appointment booking and client management platform designed specifically for beauty industry professionals. The platform streamlines the booking process, reduces administrative overhead, and enhances client relationships through intelligent automation and seamless communication tools.
+### Purpose of Botglam
+Botglam is a comprehensive, AI-powered appointment booking and client management platform designed specifically for beauty industry professionals. The platform streamlines the booking process, reduces administrative overhead, and enhances client relationships through intelligent automation and seamless communication tools.
 
 ### Target Users & Personas
 
@@ -159,7 +159,7 @@ First Booking → Ongoing Relationship
 ### Phase 1: Form Creation & Lead Capture
 
 #### Default Form Templates
-FlexiBug provides two pre-built, professionally designed form templates:
+Botglam provides two pre-built, professionally designed form templates:
 
 **Enquiry Form** - General interest capture:
 - Name (required)
@@ -289,7 +289,7 @@ FlexiBug provides two pre-built, professionally designed form templates:
 - **Form Completion Rate**: Percentage of started forms that are completed
 - **Follow-up Response Rate**: Engagement with nurturing communications
 
-This comprehensive lead-to-client conversion system transforms FlexiBug from a simple booking platform into a complete customer acquisition and relationship management solution, providing beauty professionals with the tools they need to grow their business systematically.
+This comprehensive lead-to-client conversion system transforms Botglam from a simple booking platform into a complete customer acquisition and relationship management solution, providing beauty professionals with the tools they need to grow their business systematically.
 
 ---
 
@@ -649,7 +649,7 @@ This comprehensive lead-to-client conversion system transforms FlexiBug from a s
 ### Development Log
 Daily development progress, technical decisions, and blockers are tracked in a separate document:
 
-📋 **[FlexiBug Development Log](FlexiBug_Development_Log.md)**
+📋 **[Botglam Development Log](Botglam_Development_Log.md)**
 
 The development log includes:
 - Daily task completion tracking

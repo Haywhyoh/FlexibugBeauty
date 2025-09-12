@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FlexiBug Design System - Beauty Industry Focused */
+/* Botglam Design System - Beauty Industry Focused */
 
 @layer base {
   :root {
-    /* FlexiBug Color Scheme - Light Mode */
+    /* Botglam Color Scheme - Light Mode */
     --background: 0 0% 98%; /* Warm white background */
     --foreground: 25 15% 34%; /* Warm charcoal for text (#57534e) */
 
@@ -55,7 +55,7 @@
   }
 
   .dark {
-    /* FlexiBug Color Scheme - Dark Mode */
+    /* Botglam Color Scheme - Dark Mode */
     --background: 25 15% 8%; /* Very dark warm background */
     --foreground: 327 73% 95%; /* Light rose for text */
 
@@ -207,7 +207,7 @@
   }
 }
 
-/* FlexiBug Custom Component Styles - Mobile First */
+/* Botglam Custom Component Styles - Mobile First */
 @layer components {
   /* Primary Button - Mobile First */
   .btn-primary {
@@ -415,7 +415,7 @@
   }
 }
 
-/* FlexiBug Utility Classes */
+/* Botglam Utility Classes */
 @layer utilities {
   /* Gradient Backgrounds */
   .gradient-primary {

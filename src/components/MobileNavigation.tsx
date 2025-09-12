@@ -50,7 +50,7 @@ const MobileNavigation = ({ currentView, setCurrentView, onLogout }: MobileNavig
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              FlexiBug
+              Botglam
             </span>
           </div>
           
@@ -88,7 +88,7 @@ const MobileNavigation = ({ currentView, setCurrentView, onLogout }: MobileNavig
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                FlexiBug
+                Botglam
               </span>
             </div>
           </div>

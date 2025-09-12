@@ -140,14 +140,14 @@ serve(async (req) => {
     console.log('Lead updated with invitation details')
 
     // Create invitation URL
-    const baseUrl = req.headers.get('origin') || 'https://flexibug.com'
+    const baseUrl = req.headers.get('origin') || 'https://Botglam.com'
     const invitationUrl = `${baseUrl}/signup?invitation=${invitationToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`
 
     console.log('Created invitation URL')
 
     // Prepare email content
     const professionalName = professional?.full_name || professional?.business_name || 'Your Beauty Professional'
-    const emailSubject = `${professionalName} has invited you to join FlexiBug`
+    const emailSubject = `${professionalName} has invited you to join Botglam`
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -155,18 +155,18 @@ serve(async (req) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>You're invited to join FlexiBug</title>
+          <title>You're invited to join Botglam</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #9333ea, #ec4899); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
             <h1 style="color: white; margin: 0; font-size: 28px;">You're Invited!</h1>
-            <p style="color: #f3edff; margin: 10px 0 0 0; font-size: 16px;">Join FlexiBug for seamless beauty appointments</p>
+            <p style="color: #f3edff; margin: 10px 0 0 0; font-size: 16px;">Join Botglam for seamless beauty appointments</p>
           </div>
           
           <div style="background: #f9fafb; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
             <h2 style="color: #1f2937; margin-top: 0;">Hi ${name}!</h2>
             <p style="font-size: 16px; margin-bottom: 20px;">
-              ${professionalName} has invited you to create an account on FlexiBug, making it easier than ever to book and manage your beauty appointments.
+              ${professionalName} has invited you to create an account on Botglam, making it easier than ever to book and manage your beauty appointments.
             </p>
             
             ${customMessage ? `
@@ -200,7 +200,7 @@ serve(async (req) => {
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <p style="font-size: 14px; color: #6b7280; margin: 0;">
-              This invitation was sent by ${professionalName} through FlexiBug.<br>
+              This invitation was sent by ${professionalName} through Botglam.<br>
               If you have any questions, feel free to reply to this email.
             </p>
           </div>
@@ -225,7 +225,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'FlexiBug <noreply@flexibug.com>',
+        from: 'Botglam <noreply@Botglam.com>',
         to: email, // Changed from [email] to email - Resend expects a string
         subject: emailSubject,
         html: emailHtml,

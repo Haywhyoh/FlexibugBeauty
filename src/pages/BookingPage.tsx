@@ -67,18 +67,49 @@ export const BookingPage = () => {
   const [requirementsAcknowledged, setRequirementsAcknowledged] = useState(false);
   const [depositAmount, setDepositAmount] = useState<number>(0);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('BookingPage - profileId:', profileId, 'serviceId:', serviceId);
+  }, [profileId, serviceId]);
+
+  const calculateDepositAmount = (settings: DepositSettings, servicePrice: number) => {
+    if (!settings.require_deposit) {
+      setDepositAmount(0);
+      return;
+    }
+
+    let amount = 0;
+    if (settings.deposit_type === 'percentage') {
+      amount = (servicePrice * settings.deposit_percentage) / 100;
+    } else {
+      amount = settings.deposit_fixed_amount;
+    }
+    
+    setDepositAmount(Math.round(amount * 100) / 100); // Round to 2 decimal places
+  };
+
   useEffect(() => {
     if (profileId && serviceId) {
       fetchBookingData();
+    } else {
+      console.error('Missing required parameters:', { profileId, serviceId });
+      toast({
+        title: "Error",
+        description: "Invalid booking link. Please try again from the profile page.",
+        variant: "destructive",
+      });
+      navigate(-1);
     }
-  }, [profileId, serviceId]);
+  }, [profileId, serviceId, navigate, toast]);
 
   const fetchBookingData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching booking data for profileId:', profileId, 'serviceId:', serviceId);
 
       // Check if profileId is a UUID or a business slug
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profileId!);
+      console.log('ProfileId is UUID:', isUUID);
       
       // Fetch professional profile with deposit settings
       const { data: professionalData, error: professionalError } = await supabase
@@ -88,7 +119,11 @@ export const BookingPage = () => {
         .eq('is_profile_public', true)
         .single();
 
-      if (professionalError) throw professionalError;
+      if (professionalError) {
+        console.error('Professional profile error:', professionalError);
+        throw professionalError;
+      }
+      console.log('Professional data fetched:', professionalData);
 
       // Fetch service details
       const { data: serviceData, error: serviceError } = await supabase
@@ -106,7 +141,11 @@ export const BookingPage = () => {
         .eq('is_active', true)
         .single();
 
-      if (serviceError) throw serviceError;
+      if (serviceError) {
+        console.error('Service data error:', serviceError);
+        throw serviceError;
+      }
+      console.log('Service data fetched:', serviceData);
 
       setBookingData({
         professional: {
@@ -123,9 +162,21 @@ export const BookingPage = () => {
       }
     } catch (error) {
       console.error('Error fetching booking data:', error);
+      
+      let errorMessage = "Failed to load booking information";
+      if (error instanceof Error) {
+        if (error.message.includes('No rows found')) {
+          errorMessage = "Service or profile not found. Please check the link and try again.";
+        } else if (error.message.includes('JWT')) {
+          errorMessage = "Authentication error. Please refresh the page and try again.";
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to load booking information",
+        description: errorMessage,
         variant: "destructive",
       });
       navigate(-1);
@@ -140,6 +191,9 @@ export const BookingPage = () => {
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading booking information...</p>
+          <p className="text-xs text-gray-500 mt-2">
+            ProfileId: {profileId || 'undefined'}, ServiceId: {serviceId || 'undefined'}
+          </p>
         </div>
       </div>
     );
@@ -193,23 +247,6 @@ export const BookingPage = () => {
     }
     
     return `${minutes}m`;
-  };
-
-
-  const calculateDepositAmount = (settings: DepositSettings, servicePrice: number) => {
-    if (!settings.require_deposit) {
-      setDepositAmount(0);
-      return;
-    }
-
-    let amount = 0;
-    if (settings.deposit_type === 'percentage') {
-      amount = (servicePrice * settings.deposit_percentage) / 100;
-    } else {
-      amount = settings.deposit_fixed_amount;
-    }
-    
-    setDepositAmount(Math.round(amount * 100) / 100); // Round to 2 decimal places
   };
 
   const renderProgressSteps = () => {

@@ -1,7 +1,7 @@
-# FlexiBug - Development Log
+# Botglam - Development Log
 
 ## Overview
-This development log tracks daily progress, decisions, blockers, and technical notes for the FlexiBug project. Each entry should be completed at the end of each development day or sprint.
+This development log tracks daily progress, decisions, blockers, and technical notes for the Botglam project. Each entry should be completed at the end of each development day or sprint.
 
 ---
 

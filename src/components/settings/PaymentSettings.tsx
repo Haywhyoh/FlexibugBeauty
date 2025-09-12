@@ -201,7 +201,7 @@ const PaymentSettings = () => {
       if (isVerified && selectedBank && accountNumber && accountName && !subaccountCode) {
         try {
           const subaccount = await createSubaccount({
-            business_name: user.user_metadata?.business_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || 'FlexiBugBeauty Professional',
+            business_name: user.user_metadata?.business_name || `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || 'BotglamBeauty Professional',
             settlement_bank: selectedBank.code,
             account_number: accountNumber.replace(/\s+/g, ''),
             percentage_charge: 2.5, // Platform fee percentage
@@ -211,7 +211,7 @@ const PaymentSettings = () => {
             primary_contact_phone: user.user_metadata?.phone || '',
             metadata: {
               user_id: user.id,
-              platform: 'FlexiBugBeauty'
+              platform: 'BotglamBeauty'
             }
           });
           

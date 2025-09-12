@@ -402,11 +402,15 @@ export const PublicProfile = () => {
                   size="lg"
                   className="bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base md:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
                   onClick={() => {
+                    console.log('Primary CTA clicked, services.length:', services.length);
                     // If there's only one service, go directly to booking
                     if (services.length === 1) {
-                      navigate(`/profile/${profileId}/book/${services[0].id}`);
+                      const bookingUrl = `/profile/${profileId}/book/${services[0].id}`;
+                      console.log('Single service - navigating to:', bookingUrl);
+                      navigate(bookingUrl);
                     } else {
                       // Scroll to services section
+                      console.log('Multiple services - scrolling to services section');
                       document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
@@ -710,7 +714,12 @@ export const PublicProfile = () => {
                       </Button>
                       <Button 
                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2 text-xs sm:text-sm font-semibold transition-all duration-300"
-                        onClick={() => navigate(`/profile/${profileId}/book/${service.id}`)}
+                        onClick={() => {
+                          console.log('Book Now clicked for service:', service.id, 'profileId:', profileId);
+                          const bookingUrl = `/profile/${profileId}/book/${service.id}`;
+                          console.log('Navigating to:', bookingUrl);
+                          navigate(bookingUrl);
+                        }}
                       >
                         Book Now
                       </Button>

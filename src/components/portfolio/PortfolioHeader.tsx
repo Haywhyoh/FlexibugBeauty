@@ -108,7 +108,7 @@ export const PortfolioHeader = ({ onUploadClick, uploading, portfolioItems = [] 
           <div className="flex flex-col space-y-3 w-full">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg border w-full">
               <code className="flex-1 text-xs sm:text-sm text-gray-800 font-mono bg-white px-2 py-1 rounded border break-all min-w-0">
-                https://flexibug.com/portfolio/sarah-chen-lashes
+                https://Botglam.com/portfolio/sarah-chen-lashes
               </code>
               <div className="flex gap-2 w-full sm:w-auto flex-shrink-0">
                 <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-all duration-200">

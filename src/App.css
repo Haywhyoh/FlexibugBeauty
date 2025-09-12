@@ -23,7 +23,7 @@
   filter: drop-shadow(0 0 2em theme('colors.primary.500'));
 }
 
-.logo.flexibug:hover {
+.logo.Botglam:hover {
   filter: drop-shadow(0 0 2em theme('colors.secondary.500'));
 }
 

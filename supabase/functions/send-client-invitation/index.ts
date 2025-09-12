@@ -213,18 +213,18 @@ serve(async (req) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to FlexiBug</title>
+          <title>Welcome to Botglam</title>
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #9333ea, #ec4899); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to FlexiBug!</h1>
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Botglam!</h1>
             <p style="color: #f3edff; margin: 10px 0 0 0; font-size: 16px;">Your beauty appointment platform</p>
           </div>
           
           <div style="background: #f9fafb; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
             <h2 style="color: #1f2937; margin-top: 0;">Hi ${clientName}!</h2>
             <p style="font-size: 16px; margin-bottom: 20px;">
-              ${professionalName} has created an account for you on FlexiBug to make booking appointments easier than ever!
+              ${professionalName} has created an account for you on Botglam to make booking appointments easier than ever!
             </p>
             
             ${welcomeMessage ? `
@@ -270,7 +270,7 @@ serve(async (req) => {
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <p style="font-size: 14px; color: #6b7280; margin: 0;">
-              This account was created by ${professionalName} through FlexiBug.<br>
+              This account was created by ${professionalName} through Botglam.<br>
               If you didn't expect this email, please contact ${professionalName} directly.
             </p>
           </div>
@@ -285,9 +285,9 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'FlexiBug <ayomide@codemygig.com>',
+        from: 'Botglam <ayomide@codemygig.com>',
         to: [clientEmail],
-        subject: `Welcome to FlexiBug - Account Created by ${professionalName}`,
+        subject: `Welcome to Botglam - Account Created by ${professionalName}`,
         html: emailHtml,
       }),
     })

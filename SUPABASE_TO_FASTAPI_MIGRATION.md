@@ -1,8 +1,8 @@
-# FlexiBugBeauty: Supabase to FastAPI Migration Guide
+# BotglamBeauty: Supabase to FastAPI Migration Guide
 
 ## Executive Summary
 
-This document outlines the complete migration strategy for transitioning FlexiBugBeauty from Supabase Backend-as-a-Service to a custom FastAPI-based backend. The migration involves 15+ database tables, real-time features, authentication, file storage, and complex business logic.
+This document outlines the complete migration strategy for transitioning BotglamBeauty from Supabase Backend-as-a-Service to a custom FastAPI-based backend. The migration involves 15+ database tables, real-time features, authentication, file storage, and complex business logic.
 
 **Estimated Timeline:** 12-14 weeks  
 **Estimated Effort:** 600-800 development hours  
@@ -646,7 +646,7 @@ External Services:
 
 ## Conclusion
 
-This migration represents a significant undertaking that will provide FlexiBugBeauty with:
+This migration represents a significant undertaking that will provide BotglamBeauty with:
 - **Full control** over backend infrastructure
 - **Custom optimization** opportunities
 - **Enhanced security** posture

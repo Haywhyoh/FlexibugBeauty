@@ -14,7 +14,7 @@ const LandingPage = () => {
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
-          <span className="text-white font-bold text-xl">FlexiBug</span>
+          <span className="text-white font-bold text-xl">Botglam</span>
         </div>
         <div className="space-x-4">
           <Button asChild variant="ghost" className="text-white hover:bg-white/20">
@@ -34,7 +34,7 @@ const LandingPage = () => {
             <span className="beauty-text-gradient"> Automated</span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90 leading-relaxed">
-            FlexiBug helps lash techs, makeup artists, and beauty professionals automate bookings, 
+            Botglam helps lash techs, makeup artists, and beauty professionals automate bookings, 
             showcase portfolios, and grow their business with AI-powered tools.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -131,7 +131,7 @@ const LandingPage = () => {
                 ))}
               </div>
               <p className="text-white/90 mb-4">
-                "FlexiBug transformed my lash business! I went from manually scheduling to having 
+                "Botglam transformed my lash business! I went from manually scheduling to having 
                 clients book themselves 24/7. My revenue increased by 40% in just 3 months."
               </p>
               <div className="flex items-center">
@@ -173,7 +173,7 @@ const LandingPage = () => {
           Ready to Transform Your Beauty Business?
         </h2>
         <p className="text-xl text-white/90 mb-8">
-          Join thousands of beauty professionals who've automated their success with FlexiBug
+          Join thousands of beauty professionals who've automated their success with Botglam
         </p>
         <Button asChild size="lg" className="beauty-gradient-cta text-primary-foreground hover:opacity-90 px-8 py-4 text-lg border-0">
           <Link to="/signup">Start Your Free Trial Today</Link>

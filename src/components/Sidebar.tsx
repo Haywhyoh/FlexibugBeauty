@@ -35,7 +35,7 @@ export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
             <span className="text-white font-bold text-sm">FB</span>
           </div>
           <span className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            FlexiBug
+            Botglam
           </span>
         </div>
       </div>

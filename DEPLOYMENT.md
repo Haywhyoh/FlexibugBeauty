@@ -1,6 +1,6 @@
-# FlexiBug Beauty - Linux Server Deployment Guide
+# Botglam Beauty - Linux Server Deployment Guide
 
-This guide provides comprehensive instructions for deploying the FlexiBug Beauty application to a Linux server using GitHub Actions.
+This guide provides comprehensive instructions for deploying the Botglam Beauty application to a Linux server using GitHub Actions.
 
 ## 🚀 Quick Start
 
@@ -8,7 +8,7 @@ This guide provides comprehensive instructions for deploying the FlexiBug Beauty
 
 - Ubuntu/Debian Linux server (20.04+ recommended)
 - Domain name pointing to your server (optional but recommended)
-- GitHub repository with the FlexiBug Beauty code
+- GitHub repository with the Botglam Beauty code
 - SSH access to your server
 
 ### 1. Server Setup
@@ -17,11 +17,11 @@ Run the automated server setup script:
 
 ```bash
 # Download and run the setup script
-curl -fsSL https://raw.githubusercontent.com/your-username/flexibug-beauty/main/scripts/setup-server.sh | bash
+curl -fsSL https://raw.githubusercontent.com/your-username/Botglam-beauty/main/scripts/setup-server.sh | bash
 
 # Or clone the repository and run locally
-git clone https://github.com/your-username/flexibug-beauty.git
-cd flexibug-beauty
+git clone https://github.com/your-username/Botglam-beauty.git
+cd Botglam-beauty
 chmod +x scripts/setup-server.sh
 ./scripts/setup-server.sh
 ```
@@ -77,7 +77,7 @@ For containerized deployment:
 ssh user@your-server
 
 # Navigate to the application directory
-cd /var/www/flexibug-beauty
+cd /var/www/Botglam-beauty
 
 # Run the deployment script
 ./deploy.sh
@@ -109,8 +109,8 @@ Key variables to configure:
 ### Nginx Configuration
 
 The setup script creates an optimized Nginx configuration at:
-- `/etc/nginx/sites-available/flexibug-beauty`
-- `/etc/nginx/sites-enabled/flexibug-beauty`
+- `/etc/nginx/sites-available/Botglam-beauty`
+- `/etc/nginx/sites-enabled/Botglam-beauty`
 
 ### SSL Certificate (Recommended)
 
@@ -133,19 +133,19 @@ The application includes health check endpoints:
 
 Application logs are available at:
 - Nginx logs: `/var/log/nginx/`
-- Application logs: `/var/www/flexibug-beauty/logs/`
-- System logs: `journalctl -u flexibug-beauty`
+- Application logs: `/var/www/Botglam-beauty/logs/`
+- System logs: `journalctl -u Botglam-beauty`
 
 ### Backup & Rollback
 
 #### Automatic Backups
 - Deployments automatically create backups
 - Last 5 backups are retained
-- Backups stored in `/var/www/flexibug-beauty/backup/`
+- Backups stored in `/var/www/Botglam-beauty/backup/`
 
 #### Manual Rollback
 ```bash
-cd /var/www/flexibug-beauty
+cd /var/www/Botglam-beauty
 ./rollback.sh
 ```
 
@@ -204,7 +204,7 @@ sudo systemctl status nginx
 sudo nginx -t
 
 # Check file permissions
-ls -la /var/www/flexibug-beauty/current/
+ls -la /var/www/Botglam-beauty/current/
 ```
 
 #### 3. SSL Certificate Issues

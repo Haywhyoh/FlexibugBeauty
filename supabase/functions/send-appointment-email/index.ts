@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
               <h2 style="color: #333; margin-top: 0;">Hello ${emailData.professionalName}!</h2>
               <p style="color: #666; font-size: 16px; line-height: 1.6;">
-                Great news! You have a new appointment booking through your FlexiBug profile.
+                Great news! You have a new appointment booking through your Botglam profile.
               </p>
             </div>
 
@@ -106,10 +106,10 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="text-align: center; padding: 20px;">
               <p style="color: #888; font-size: 14px;">
-                This booking was made through your FlexiBug public profile.
+                This booking was made through your Botglam public profile.
               </p>
               <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                💖 Powered by FlexiBug Beauty Platform
+                💖 Powered by Botglam Beauty Platform
               </p>
             </div>
           </div>
@@ -178,7 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
                 Questions? Reply to this email or contact ${emailData.professionalName} directly.
               </p>
               <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                💖 Powered by FlexiBug Beauty Platform
+                💖 Powered by Botglam Beauty Platform
               </p>
             </div>
           </div>
@@ -213,7 +213,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="text-align: center; padding: 20px;">
               <p style="color: #666;">Looking forward to seeing you!</p>
               <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                💖 Powered by FlexiBug Beauty Platform
+                💖 Powered by Botglam Beauty Platform
               </p>
             </div>
           </div>
@@ -264,7 +264,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="text-align: center; padding: 20px;">
               <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                💖 Powered by FlexiBug Beauty Platform
+                💖 Powered by Botglam Beauty Platform
               </p>
             </div>
           </div>
@@ -298,7 +298,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="text-align: center; padding: 20px;">
               <p style="color: #666;">We hope to see you again soon. Feel free to book a new appointment anytime!</p>
               <p style="color: #888; font-size: 12px; margin-top: 20px;">
-                💖 Powered by FlexiBug Beauty Platform
+                💖 Powered by Botglam Beauty Platform
               </p>
             </div>
           </div>
@@ -312,7 +312,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Try to send the email
     try {
       const emailResponse = await resend.emails.send({
-        from: "FlexiBug <onboarding@resend.dev>",
+        from: "Botglam <onboarding@resend.dev>",
         to: [emailData.recipientEmail],
         subject: subject,
         html: htmlContent,

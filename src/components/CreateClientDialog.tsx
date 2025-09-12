@@ -117,7 +117,7 @@ export const CreateClientDialog = ({ isOpen, onClose, onClientCreated }: CreateC
         <DialogHeader>
           <DialogTitle>Add New Client</DialogTitle>
           <p className="text-sm text-gray-600">
-            Create a FlexiBug account for your client so they can book appointments and manage their schedule online.
+            Create a Botglam account for your client so they can book appointments and manage their schedule online.
           </p>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,7 +143,7 @@ export const CreateClientDialog = ({ isOpen, onClose, onClientCreated }: CreateC
               required
             />
             <p className="text-xs text-gray-500">
-              This will be their username for logging into FlexiBug
+              This will be their username for logging into Botglam
             </p>
           </div>
           
@@ -188,7 +188,7 @@ export const CreateClientDialog = ({ isOpen, onClose, onClientCreated }: CreateC
           <div className="bg-blue-50 p-3 rounded-lg">
             <h4 className="text-sm font-medium text-blue-900 mb-2">What happens next:</h4>
             <ul className="text-xs text-blue-800 space-y-1">
-              <li>• A FlexiBug account will be created for your client</li>
+              <li>• A Botglam account will be created for your client</li>
               <li>• They'll receive a welcome email with login credentials</li>
               <li>• They'll be prompted to change their password on first login</li>
               <li>• They can then book appointments and manage their schedule</li>

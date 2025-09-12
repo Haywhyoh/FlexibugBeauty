@@ -7,7 +7,7 @@ const StyleShowcase = () => {
     <div className="container mx-auto p-4 space-y-8 md:p-8 md:space-y-12">
       {/* Hero Section */}
       <div className="text-center space-y-3 md:space-y-4">
-        <h1 className="text-display gradient-text">FlexiBug</h1>
+        <h1 className="text-display gradient-text">Botglam</h1>
         <p className="text-body-large max-w-2xl mx-auto px-4">
           Your AI-powered beauty industry appointment booking platform with elegant design and intuitive user experience.
         </p>

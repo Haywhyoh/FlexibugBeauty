@@ -1,7 +1,7 @@
-# FlexiBug - Style Guide
+# Botglam - Style Guide
 
 ## Overview
-This style guide defines the visual identity and design system for FlexiBug, the AI-powered beauty industry appointment booking platform. The design emphasizes elegance, professionalism, and accessibility while creating an inviting experience for both beauty professionals and their clients.
+This style guide defines the visual identity and design system for Botglam, the AI-powered beauty industry appointment booking platform. The design emphasizes elegance, professionalism, and accessibility while creating an inviting experience for both beauty professionals and their clients.
 
 ---
 
@@ -657,4 +657,4 @@ styles/
 
 ---
 
-*This style guide is a living document and should be updated as the FlexiBug design system evolves.* 
+*This style guide is a living document and should be updated as the Botglam design system evolves.* 
