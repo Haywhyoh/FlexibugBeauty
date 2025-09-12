@@ -16,17 +16,23 @@ export type Database = {
           client_name: string | null
           client_phone: string | null
           created_at: string
+          deposit_amount: number | null
+          deposit_paid: boolean | null
+          deposit_paid_at: string | null
           end_time: string
           follow_up_sent: boolean | null
           google_calendar_event_id: string | null
+          guest_client_id: string | null
           id: string
           notes: string | null
+          payment_status: string | null
           professional_id: string
           reminder_sent_24h: boolean | null
           reminder_sent_2h: boolean | null
           service_id: string
           start_time: string
           status: string | null
+          total_amount: number | null
           updated_at: string
         }
         Insert: {
@@ -35,17 +41,23 @@ export type Database = {
           client_name?: string | null
           client_phone?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
           end_time: string
           follow_up_sent?: boolean | null
           google_calendar_event_id?: string | null
+          guest_client_id?: string | null
           id?: string
           notes?: string | null
+          payment_status?: string | null
           professional_id: string
           reminder_sent_24h?: boolean | null
           reminder_sent_2h?: boolean | null
           service_id: string
           start_time: string
           status?: string | null
+          total_amount?: number | null
           updated_at?: string
         }
         Update: {
@@ -54,17 +66,23 @@ export type Database = {
           client_name?: string | null
           client_phone?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
           end_time?: string
           follow_up_sent?: boolean | null
           google_calendar_event_id?: string | null
+          guest_client_id?: string | null
           id?: string
           notes?: string | null
+          payment_status?: string | null
           professional_id?: string
           reminder_sent_24h?: boolean | null
           reminder_sent_2h?: boolean | null
           service_id?: string
           start_time?: string
           status?: string | null
+          total_amount?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -73,6 +91,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_guest_client_id_fkey"
+            columns: ["guest_client_id"]
+            isOneToOne: false
+            referencedRelation: "guest_clients"
             referencedColumns: ["id"]
           },
           {
@@ -184,6 +209,99 @@ export type Database = {
             columns: ["original_lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_clients: {
+        Row: {
+          id: string
+          professional_id: string
+          email: string
+          phone: string | null
+          first_name: string
+          last_name: string | null
+          full_name: string | null
+          total_bookings: number | null
+          total_spent: number | null
+          first_booking_date: string | null
+          last_booking_date: string | null
+          converted_to_user_id: string | null
+          conversion_date: string | null
+          invitation_sent_at: string | null
+          invitation_token: string | null
+          invitation_expires_at: string | null
+          notes: string | null
+          preferences: Json | null
+          marketing_consent: boolean | null
+          source: string | null
+          metadata: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          professional_id: string
+          email: string
+          phone?: string | null
+          first_name: string
+          last_name?: string | null
+          full_name?: string | null
+          total_bookings?: number | null
+          total_spent?: number | null
+          first_booking_date?: string | null
+          last_booking_date?: string | null
+          converted_to_user_id?: string | null
+          conversion_date?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          invitation_expires_at?: string | null
+          notes?: string | null
+          preferences?: Json | null
+          marketing_consent?: boolean | null
+          source?: string | null
+          metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          professional_id?: string
+          email?: string
+          phone?: string | null
+          first_name?: string
+          last_name?: string | null
+          full_name?: string | null
+          total_bookings?: number | null
+          total_spent?: number | null
+          first_booking_date?: string | null
+          last_booking_date?: string | null
+          converted_to_user_id?: string | null
+          conversion_date?: string | null
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          invitation_expires_at?: string | null
+          notes?: string | null
+          preferences?: Json | null
+          marketing_consent?: boolean | null
+          source?: string | null
+          metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_clients_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_clients_converted_to_user_id_fkey"
+            columns: ["converted_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

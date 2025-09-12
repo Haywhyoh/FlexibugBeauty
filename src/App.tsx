@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import GuestInvitationPage from "./pages/GuestInvitationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireAuth={false}>
                   <ResetPassword />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/invite/:token" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <GuestInvitationPage />
                 </ProtectedRoute>
               } 
             />

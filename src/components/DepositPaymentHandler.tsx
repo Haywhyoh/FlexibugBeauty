@@ -25,18 +25,29 @@ export const DepositPaymentHandler = () => {
   // Helper function to handle guest client bookings
   const handleGuestClientBooking = async (appointmentData: any) => {
     try {
-      // For now, we'll return null and handle guest clients through appointment fields
-      // This will be enhanced when we implement the guest_clients table
+      if (!appointmentData.client_email || !appointmentData.client_name || !appointmentData.professional_id) {
+        console.log('Missing required guest client data');
+        return null;
+      }
+
+      // Use the upsert_guest_client function to create or find guest client
+      const { data: guestClientId, error } = await supabase
+        .rpc('upsert_guest_client', {
+          p_professional_id: appointmentData.professional_id,
+          p_email: appointmentData.client_email,
+          p_phone: appointmentData.client_phone || null,
+          p_full_name: appointmentData.client_name,
+          p_source: 'booking'
+        });
+
+      if (error) {
+        console.error('Error creating/finding guest client:', error);
+        return null;
+      }
+
+      console.log('Created/found guest client:', guestClientId);
+      return guestClientId;
       
-      // Log guest booking for tracking
-      console.log('Processing guest booking:', {
-        client_name: appointmentData.client_name,
-        client_email: appointmentData.client_email,
-        client_phone: appointmentData.client_phone,
-        professional_id: appointmentData.professional_id
-      });
-      
-      return null; // Guest bookings don't have client_id yet
     } catch (error) {
       console.error('Error handling guest client booking:', error);
       return null;
@@ -90,6 +101,7 @@ export const DepositPaymentHandler = () => {
           
           // Handle both authenticated and guest bookings
           let clientUserId = null;
+          let guestClientId = null;
           let isGuestBooking = false;
           
           if (appointment_data.user_id) {
@@ -98,28 +110,38 @@ export const DepositPaymentHandler = () => {
           } else {
             // Guest booking - create or find guest client record
             isGuestBooking = true;
-            clientUserId = await handleGuestClientBooking(appointment_data);
+            guestClientId = await handleGuestClientBooking(appointment_data);
           }
           
           // For payment transaction user_id, use client if available, otherwise professional
           const paymentUserId = clientUserId || appointment_data.professional_id;
 
-          // Create the appointment
+          // Create the appointment with proper client linking
+          const appointmentInsertData = {
+            ...appointment_data,
+            client_id: clientUserId, // For authenticated users
+            guest_client_id: guestClientId, // For guest users
+            status: 'confirmed',
+            deposit_paid: true,
+            payment_status: 'partial',
+            deposit_paid_at: new Date().toISOString(),
+            total_amount: appointment_data.total_amount,
+            deposit_amount: paymentVerification.amount / 100, // Convert from kobo
+            // Always store contact info for backward compatibility
+            client_name: appointment_data.client_name,
+            client_email: appointment_data.client_email,
+            client_phone: appointment_data.client_phone,
+          };
+
           const { data: appointment, error: appointmentError } = await supabase
             .from('appointments')
-            .insert({
-              ...appointment_data,
-              client_id: clientUserId, // Will be null for guest bookings initially
-              status: 'confirmed',
-              deposit_paid: true,
-              payment_status: 'partial',
-              deposit_paid_at: new Date().toISOString(),
-              // Store guest client info in the appointment record for now
-              client_name: appointment_data.client_name,
-              client_email: appointment_data.client_email,
-              client_phone: appointment_data.client_phone,
-            })
-            .select()
+            .insert(appointmentInsertData)
+            .select(`
+              *,
+              service:services(*),
+              professional:profiles!professional_id(*),
+              guest_client:guest_clients(*)
+            `)
             .single();
 
           if (appointmentError) throw appointmentError;
@@ -147,7 +169,9 @@ export const DepositPaymentHandler = () => {
                 client_phone: appointment_data.client_phone,
                 booking_type: isGuestBooking ? 'guest' : 'authenticated',
                 client_user_id: clientUserId,
+                guest_client_id: guestClientId,
                 professional_id: appointment_data.professional_id,
+                appointment_id: appointment.id,
               },
             });
 
