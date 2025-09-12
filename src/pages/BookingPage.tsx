@@ -534,6 +534,7 @@ export const BookingPage = () => {
         {currentStep === 'booking' && (
           <BookingEngine 
             professionalId={professional.id}
+            preselectedServiceId={service.id}
             onClose={() => setCurrentStep('requirements')}
             onBookingComplete={() => {
               toast({

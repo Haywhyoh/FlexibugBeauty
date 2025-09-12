@@ -52,6 +52,7 @@ interface BookingEngineProps {
   professionalId: string;
   onClose?: () => void;
   onBookingComplete?: () => void;
+  preselectedServiceId?: string;
 }
 
 interface BookingDetails {
@@ -64,7 +65,7 @@ interface BookingDetails {
 const timeSlotInterval = 30; // Minutes
 const numberOfDaysToShow = 7;
 
-export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: BookingEngineProps) => {
+export const BookingEngine = ({ professionalId, onClose, onBookingComplete, preselectedServiceId }: BookingEngineProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -96,6 +97,15 @@ export const BookingEngine = ({ professionalId, onClose, onBookingComplete }: Bo
 
         if (servicesError) throw servicesError;
         setServices(servicesData || []);
+
+        // Auto-select the preselected service if provided
+        if (preselectedServiceId && servicesData) {
+          const preselectedService = servicesData.find(service => service.id === preselectedServiceId);
+          if (preselectedService) {
+            setSelectedService(preselectedService);
+            setCurrentStep(2); // Skip service selection step
+          }
+        }
 
         // Fetch professional profile with deposit settings
         const { data: profileData, error: profileError } = await supabase
