@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Dashboard } from "@/components/Dashboard";
 import { CalendarView } from "@/components/CalendarView";
 import { MessagesView } from "@/components/MessagesView";
-import { ProfileEditor } from "@/components/ProfileEditor";
+import { UnifiedProfileSettings } from "@/components/UnifiedProfileSettings";
 import { ClientsView } from "@/components/ClientsView";
 import { LeadsView } from "@/components/LeadsView";
 import { PortfolioManager } from "@/components/PortfolioManager";
@@ -57,12 +57,13 @@ const Index = () => {
       case "availability":
         return <AvailabilityManager />;
       case "profile":
-        return <ProfileEditor />;
+        return <UnifiedProfileSettings />;
       case "email-settings":
         return <EmailNotificationSettings />;
       case "settings":
       case "branding-settings":
-      case "business-settings":
+      case "profile-settings":
+      case "business-settings": // Backward compatibility
       case "payment-settings":
       case "deposit-settings":
       case "payment-analytics":

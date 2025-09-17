@@ -55,7 +55,7 @@ export const navigationItems: NavigationItem[] = [
     submenu: [
       { id: "settings", label: "General Settings", icon: Settings },
       { id: "branding-settings", label: "Branding", icon: Palette },
-      { id: "business-settings", label: "Business Info", icon: Building },
+      { id: "profile-settings", label: "Profile & Business", icon: Building },
       { id: "notification-settings", label: "Notifications", icon: Bell },
       { id: "email-settings", label: "Email Settings", icon: Mail }
     ]

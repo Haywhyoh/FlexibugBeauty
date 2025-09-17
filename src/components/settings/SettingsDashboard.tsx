@@ -17,9 +17,9 @@ const SettingsDashboard = ({ onNavigate }: SettingsDashboardProps) => {
       color: "from-purple-500 to-pink-500"
     },
     {
-      id: "business-settings", 
-      title: "Business Information",
-      description: "Update your business details, hours, and contact information",
+      id: "profile-settings", 
+      title: "Profile & Business",
+      description: "Manage your personal profile, business information, and contact details",
       icon: Building,
       color: "from-blue-500 to-cyan-500"
     },

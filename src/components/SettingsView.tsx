@@ -2,7 +2,7 @@
 import EmailNotificationSettings from './EmailNotificationSettings';
 import SettingsDashboard from './settings/SettingsDashboard';
 import BrandingSettings from './settings/BrandingSettings';
-import BusinessSettings from './settings/BusinessSettings';
+import { UnifiedProfileSettings } from './UnifiedProfileSettings';
 import PaymentSettings from './settings/PaymentSettings';
 import NotificationSettings from './settings/NotificationSettings';
 import { DepositSettingsManager } from './DepositSettingsManager';
@@ -18,8 +18,9 @@ const SettingsView = ({ currentView, onViewChange }: SettingsViewProps) => {
     switch (currentView) {
       case 'branding-settings':
         return <BrandingSettings />;
-      case 'business-settings':
-        return <BusinessSettings />;
+      case 'profile-settings':
+      case 'business-settings': // Backward compatibility
+        return <UnifiedProfileSettings />;
       case 'payment-settings':
         return <PaymentSettings />;
       case 'deposit-settings':
